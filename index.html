@@ -1,0 +1,562 @@
+<!doctype html><html><head><meta charset=utf8><meta name="robots" content="noindex"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Scontrino delle tasse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: tre schermate in sequenza. Inserimento del lordo, calcolo animato come uno scontrino che si stampa, risultato con barra del costo e spiegazione voce per voce */
+:root{
+  --bg:#000000; --paper:#14181b; --field:#0a0d0f; --ink:#e8edf0; --muted:#98a6af; --rule:#2a3137;
+  --accent:#3d7bf0; --accent-ink:#ffffff; --accent-soft:#13264a;
+  --c-azienda:#2f5bd3; --c-tfr:#5b8def; --c-inps:#9cc3ff; --c-irpef:#f4f6f7; --c-add:#ffb36b; --c-netto:#ff8c2e; --c-bonus:#ffb36b;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 56px}
+.wrap{max-width:820px;margin:0 auto}
+.screen{display:flex;flex-direction:column;gap:24px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,6.5vw,3.3rem);line-height:1.02;letter-spacing:-.02em;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:700;font-size:1.45rem;margin:0;text-wrap:balance;line-height:1.2}
+h3{font-family:var(--display);font-weight:700;font-size:1.12rem;margin:0}
+p{margin:0}
+.lede{color:var(--muted);max-width:58ch;font-size:1.08rem}
+.panel{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:20px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;font-weight:600}
+input[type=number],input[type=text]{width:100%;outline:none;-webkit-appearance:none;appearance:none;font-family:var(--mono);font-size:1rem;padding:10px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--field);color:var(--ink)}
+input:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.hint{font-size:.85rem;color:var(--muted)}
+
+/* Schermata 1 */
+.intro{min-height:70vh;justify-content:center}
+.big-input{position:relative}
+.big-input input{font-size:clamp(2rem,9vw,3.2rem);font-weight:600;padding:14px 64px 14px 18px;border-width:2px;background:var(--field)}
+.big-input .euro{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:1.6rem;color:var(--muted);pointer-events:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{font-family:var(--mono);font-size:.88rem;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
+.chips button:hover{border-color:var(--accent);color:var(--accent)}
+details{border-top:1px solid var(--rule);padding-top:14px}
+summary{cursor:pointer;color:var(--muted);font-weight:600}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.cta{align-self:flex-start;font-family:var(--display);font-weight:700;font-size:1.15rem;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:14px 26px;cursor:pointer}
+.cta:hover{filter:brightness(1.07)}
+.cta:disabled{opacity:.45;cursor:not-allowed}
+.where{font-size:.9rem;color:var(--muted);max-width:60ch}
+
+/* Schermata 2: caricamento */
+.loading{min-height:70vh;justify-content:center;align-items:center;text-align:center}
+.printer{width:min(360px,100%);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:20px;font-family:var(--mono);font-size:.9rem;text-align:left}
+.printer .head{text-align:center;text-transform:uppercase;letter-spacing:.12em;font-weight:600;font-size:.78rem;color:var(--muted);padding-bottom:10px;border-bottom:1px dashed var(--rule);margin-bottom:10px}
+.step{display:grid;grid-template-columns:20px 1fr;gap:8px;padding:5px 0;color:var(--muted);transition:color .3s}
+.step .ic{width:14px;height:14px;border-radius:50%;border:2px solid var(--rule);align-self:center;transition:all .3s}
+.step.run{color:var(--ink)}
+.step.run .ic{border-color:#fff;border-top-color:transparent;animation:spin .7s linear infinite}
+.step.done{color:var(--ink)}
+.step.done .ic{background:#fff;border-color:#fff}
+.ring{position:relative;width:180px;height:180px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:6}
+.ring .arc{fill:none;stroke:#fff;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
+.ring .check{position:absolute;inset:0;width:100%;height:100%;transform:none}
+.ring .check path{fill:none;stroke:#fff;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:draw .45s ease-out forwards;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:2.2rem;color:#fff;font-variant-numeric:tabular-nums}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Schermata 3: risultato */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.back{background:transparent;border:1px solid var(--rule);color:var(--ink);border-radius:999px;padding:7px 14px;font-family:var(--body);font-weight:600;cursor:pointer}
+.back:hover{border-color:var(--accent);color:var(--accent)}
+.hero-num{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,10vw,4.2rem);line-height:1;letter-spacing:-.02em}
+.barwrap{position:relative;margin-top:2px}
+.bar{display:flex;height:58px;border-radius:6px;overflow:hidden}
+.seg{display:flex;align-items:center;justify-content:center;height:100%;border:0;padding:0;margin:0;cursor:pointer;color:#fff;font-family:var(--mono);font-weight:600;font-size:.82rem;transform-origin:left;animation:grow .7s ease both;transition:filter .15s,opacity .15s;min-width:0;overflow:hidden}
+.seg span{white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.bar.hovering .seg{opacity:.45}
+.bar.hovering .seg.on{opacity:1;filter:brightness(1.08)}
+.seg:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
+.tip{position:absolute;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:8px;padding:7px 11px;font-size:.86rem;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:2}
+.tip b{font-family:var(--mono)}
+.tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink)}
+.legend button{background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer}
+.legend button:hover{text-decoration:underline}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.summary div{display:flex;flex-direction:column;gap:2px}
+.summary b{font-family:var(--display);font-size:1.7rem;line-height:1.1}
+.summary span{font-size:.86rem;color:var(--muted)}
+@media (max-width:560px){.summary{grid-template-columns:1fr}}
+
+.voci{display:flex;flex-direction:column;gap:0}
+.voce{border-top:1px solid var(--rule)}
+.voce:first-of-type{border-top:0}
+.voce summary{list-style:none;display:grid;grid-template-columns:6px minmax(0,1fr) auto 18px;gap:14px;align-items:center;padding:16px 4px;cursor:pointer;border-radius:6px}
+.voce summary::-webkit-details-marker{display:none}
+.voce summary:hover{background:var(--bg)}
+.voce .stripe{align-self:stretch;border-radius:3px;min-height:26px}
+.voce .ttl{font-family:var(--display);font-weight:700;font-size:1.1rem}
+.voce .amt{font-family:var(--mono);font-weight:600;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.voce .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
+.voce[open] .chev{transform:rotate(-135deg) translate(-2px,-2px)}
+.voce .body{padding:0 4px 18px 24px;display:flex;flex-direction:column;gap:12px}
+.calc{background:var(--bg);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:.92rem;line-height:1.7;font-variant-numeric:tabular-nums}
+.calc>span{display:block;font-family:var(--body);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:2px}
+.calc b.res{color:var(--vc)}
+.calc small{display:block;font-family:var(--body);font-size:.88rem;color:var(--muted);line-height:1.5;margin-top:6px}
+.voce .kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 12px;font-size:.96rem}
+.voce .kv dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding-top:3px}
+.voce .kv dd{margin:0;max-width:62ch}
+@media (max-width:520px){.voce .kv{grid-template-columns:1fr}.voce .kv dd{margin-bottom:6px}.voce .body{padding-left:4px}}
+.subtotal.net span:last-child{color:#5fd46a;font-weight:700;font-size:1.05rem}
+.subtotal{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;margin:2px 0 2px 22px;background:var(--bg);border-radius:6px;font-family:var(--mono);font-size:.9rem;font-variant-numeric:tabular-nums}
+
+.split{display:flex;flex-direction:column;gap:18px;margin-top:10px}
+.srow{display:flex;flex-direction:column;gap:6px}
+.srow .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.srow .name{font-family:var(--display);font-weight:700;font-size:1.02rem}
+.srow .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.srow .v small{color:var(--muted);font-weight:400;margin-left:6px}
+.srow .track{height:10px;background:var(--field);border-radius:5px;overflow:hidden}
+.srow .fill{height:100%;background:var(--c-irpef);border-radius:5px}
+.srow .desc{color:var(--muted);font-size:.88rem}
+
+.notes{font-size:.9rem;color:var(--muted)}
+.notes ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.notes a{color:var(--accent)}
+/* Cascata: dal costo azienda al netto */
+.lead-explain{margin-top:10px;font-size:1.08rem;max-width:62ch}
+.lead-explain b{font-family:var(--mono);font-weight:600}
+.cascade{display:flex;flex-direction:column;gap:0}
+.lvl{display:flex;flex-direction:column;gap:6px}
+.lvl .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lvl .name{font-family:var(--display);font-weight:700;font-size:1.05rem}
+.lvl .val{font-family:var(--mono);font-weight:600;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.lvl .block{height:30px;border-radius:5px;transform-origin:left;animation:grow .7s ease both}
+.lvl p{color:var(--muted);font-size:.93rem;max-width:62ch}
+.drop{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:10px 0 12px 6px;align-items:start}
+.drop .arrow{width:2px;justify-self:center;align-self:stretch;background:var(--rule);position:relative;min-height:34px}
+.drop .arrow::after{content:"";position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--rule);border-bottom:0}
+.drop ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.93rem}
+.drop li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.drop li i{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
+.drop li b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+.drop li span{color:var(--muted)}
+.voce .tag{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:4px;font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--paper);margin-right:8px;vertical-align:2px}
+.voce:target,.voce.flash{background:linear-gradient(90deg,var(--accent-soft),transparent 70%)}
+.extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin-top:10px}
+.extra div{font-size:.92rem}
+.extra b{display:block;font-family:var(--display)}
+@media (max-width:560px){.extra{grid-template-columns:1fr}}
+/* Centratura */
+.screen h1,.screen h2,.lede,.hero-num,.lead-explain,.screen>.panel>h2,.panel>h2,.panel>h3,.panel>.hint,.panel>p.muted,.panel>div>h2,.panel>div>p,.where,.barwrap+.hint{text-align:center;margin-left:auto;margin-right:auto}
+.intro{align-items:center;text-align:center}
+.intro .panel{width:100%;text-align:left}
+.intro .cta{align-self:center}
+.chips{justify-content:center}
+.legend{justify-content:center}
+.summary{text-align:center}
+.topbar{justify-content:center;flex-direction:column}
+.panel h3[style]{text-align:center}
+/* Voce per voce centrata */
+.voce summary{grid-template-columns:1fr;justify-items:center;text-align:center;gap:4px;padding:18px 8px 14px}
+.voce .stripe{width:44px;height:4px;min-height:0;align-self:center;border-radius:2px;margin-bottom:6px}
+.voce .chev{margin-top:6px}
+.voce .body{padding:0 8px 20px;align-items:center;text-align:center}
+.calc{width:100%;text-align:center}
+.voce .kv{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%}
+.voce .kv dt{padding-top:10px}
+.voce .kv dd{max-width:58ch}
+.subtotal{margin:2px auto;justify-content:center;gap:16px;max-width:520px}
+.srow{align-items:center;text-align:center}
+.srow .head{justify-content:center;flex-wrap:wrap}
+.srow .track{width:100%}
+.srow .desc{max-width:52ch}
+.voce .kv{align-items:stretch;max-width:58ch;text-align:left}
+.voce .kv dt{font-size:.86rem;letter-spacing:.05em;color:var(--ink);padding-top:12px}
+.voce .kv dd{max-width:none}
+.srow .head{flex-direction:column;align-items:center;gap:2px}
+.voce .kv dt{font-size:1.08rem;font-family:var(--display);font-weight:700;letter-spacing:0;text-transform:none;padding-top:14px}
+.voce summary{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 10px}
+.voce .stripe{width:10px;height:10px;border-radius:2px;margin:0;align-self:center}
+.voce .ttl::after{content:":"}
+.voce .chev{margin:0 0 3px 6px}
+.calc{font-size:.8rem;line-height:1.6;padding:10px 12px}
+.calc small{font-size:.78rem}
+.srow .line{display:flex;align-items:center;justify-content:center;gap:10px}
+.srow .line .track{width:min(120px,30vw);height:6px;flex:none}
+/* Colonna unica per le cifre, come uno scontrino */
+.voci{max-width:620px;margin:0 auto;width:100%}
+.voce summary{display:grid;grid-template-columns:10px minmax(0,1fr) auto 18px;justify-items:start;text-align:left;gap:12px;padding:16px 10px}
+.voce .ttl::after{content:none}
+.voce .amt{justify-self:end;text-align:right;min-width:110px}
+.voce .chev{justify-self:center;margin:0 0 3px}
+.subtotal{display:grid;grid-template-columns:10px minmax(0,1fr) auto 18px;gap:12px;max-width:none;margin:2px 0;padding:10px;justify-content:stretch;border-radius:6px}
+.subtotal span:first-child{grid-column:2}
+.subtotal span:last-child{grid-column:3;justify-self:end;text-align:right;min-width:110px}
+/* Dove vanno: piu grande */
+.split{gap:26px;margin-top:16px}
+.srow .name{font-size:1.3rem}
+.srow .v{font-size:1.2rem}
+.srow .v small{font-size:.9rem}
+.srow .line .track{width:min(170px,34vw);height:8px}
+.srow .desc{font-size:1rem;max-width:56ch}
+/* Dove vanno: stesso stile di Voce per voce */
+.split{display:block;max-width:620px;margin:10px auto 0;width:100%}
+.srow2 summary{grid-template-columns:10px minmax(0,1fr) auto auto 18px}
+.srow2 .pc{font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;justify-self:end;min-width:52px;text-align:right}
+.srow2 .amt{color:var(--ink)}
+.srow2 .body{align-items:stretch;text-align:left;padding:0 10px 18px 32px;gap:10px}
+.sbar{height:8px;background:var(--field);border-radius:4px;overflow:hidden}
+.sbar .fill{height:100%;background:var(--c-irpef);border-radius:4px}
+.sdesc{color:var(--muted);font-size:.98rem;max-width:58ch}
+.split .subtotal{grid-template-columns:10px minmax(0,1fr) auto 18px}
+.srow2 .ttl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.mbar{display:inline-block;width:70px;height:6px;background:var(--field);border-radius:3px;overflow:hidden;flex:none}
+.mbar span{display:block;height:100%;background:var(--c-irpef);border-radius:3px}
+.srow2 .pc{font-size:.74rem;min-width:0;white-space:nowrap}
+@media (max-width:520px){.srow2 summary{grid-template-columns:10px minmax(0,1fr) auto 18px}.srow2 .pc{grid-column:2;grid-row:2;justify-self:start}}
+/* Voce per voce: corpo come in Dove vanno */
+#voci .voce .body{align-items:stretch;text-align:left;padding:0 10px 18px 32px;gap:10px}
+#voci .calc{text-align:left}
+#voci .voce .kv{align-items:stretch;max-width:58ch;margin:0;text-align:left;gap:2px}
+#voci .voce .kv dt{font-size:1rem;padding-top:10px}
+#voci .voce .kv dd{color:var(--muted);font-size:.98rem}
+/* Nel carattere monospaziato lo spazio e largo quanto una cifra: lo stringo tra numero ed euro */
+.amt,.subtotal,.pc,.tip b,.legend .mono,.srow .v,#taxTot,.calc b{word-spacing:-.3em}
+.hero-num{word-spacing:.04em}
+.seg{margin-right:-1px}.seg:last-child{margin-right:0}
+.big-input input::placeholder{color:var(--muted);opacity:.6}
+.big-input input:focus{border-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+  <!-- 1. Inserimento -->
+  <section class="screen intro" id="s-intro">
+    <h1>Cosa paghi davvero con il tuo stipendio?</h1>
+    <div class="panel screen" style="gap:16px">
+      <div>
+        <label for="lordo">Stipendio lordo mensile</label>
+        <div class="big-input">
+          <input id="lordo" type="text" placeholder="2300" inputmode="decimal" autocomplete="off">
+          <span class="euro">€</span>
+        </div>
+      </div>
+      <details>
+        <summary>Opzioni (mensilità)</summary>
+        <div class="opts">
+          <div>
+            <label for="mens">Mensilità</label>
+            <input id="mens" type="number" min="12" max="14" step="1" value="13">
+          </div>
+        </div>
+        <p class="hint" style="margin-top:8px">13 se hai la tredicesima, 14 se hai anche la quattordicesima.</p>
+      </details>
+      <button class="cta" id="go" type="button" disabled>Calcola</button>
+    </div>
+  </section>
+
+  <!-- 2. Caricamento -->
+  <section class="screen loading" id="s-load" hidden aria-live="polite">
+    <h2>Sto facendo i conti</h2>
+    <div class="printer">
+      <div class="head">Scontrino in stampa</div>
+      <div id="steps"></div>
+    </div>
+    <div class="ring" aria-hidden="true">
+      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="arc" id="arc" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="276.46"/></svg>
+      <div class="pct" id="pct">0%</div>
+      <svg class="check" id="check" viewBox="0 0 100 100" hidden><path d="M31 52 L45 66 L71 38"/></svg>
+    </div>
+  </section>
+
+  <!-- 3. Risultato -->
+  <section class="screen" id="s-res" hidden>
+    <div class="topbar">
+      <span class="muted">Lordo mensile <b class="mono" id="r-lordo" style="color:var(--ink)"></b></span>
+      <button class="back" id="again" type="button">Cambia stipendio</button>
+    </div>
+
+    <div class="panel screen" style="gap:16px">
+      <div>
+        <h2>Quanto costa il tuo lavoro ogni mese</h2>
+        <p class="hero-num mono" id="r-costo"></p>
+        <p class="lead-explain" id="r-explain"></p>
+      </div>
+      <h3 style="margin-top:6px">Ogni euro, in una barra</h3>
+      <div class="barwrap"><div class="tip" id="tip" hidden></div><div class="bar" id="bar" role="group" aria-label="Ripartizione del costo del lavoro"></div></div>
+      <div class="legend" id="legend"></div>
+      <div class="summary">
+        <div><b id="s-netto" style="color:var(--c-netto)"></b><span>arrivano sul tuo conto</span></div>
+        <div><b id="s-inps" style="color:var(--c-inps)"></b><span>vanno all'INPS</span></div>
+        <div><b id="s-tax" style="color:var(--c-irpef)"></b><span>sono IRPEF</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Dove vanno i tuoi <span class="mono" id="taxTot"></span> di imposte</h2>
+      <p class="hint" style="margin-top:6px">L'IRPEF di un mese, divisa secondo come lo Stato ha speso nel 2024 (dati Eurostat, l'ultimo anno disponibile: il 2025 per voce esce a inizio 2027).</p>
+      <div class="split" id="split"></div>
+    </div>
+
+    <div class="panel">
+      <h2 style="margin-bottom:6px">Voce per voce</h2>
+      <div class="voci" id="voci"></div>
+    </div>
+
+
+  </section>
+</div>
+
+<script>
+const AZ_RATE = 0.30, INPS_RATE = 0.0919, INPS_FASCIA = 56224;
+// Spesa pubblica italiana 2024, Eurostat COFOG, in punti di PIL (totale 50,4)
+const PIL_TOT = 50.4;
+const COFOG = [
+  {k:"Pensioni", d:"di vecchiaia e ai superstiti: circa tre quarti della protezione sociale", g:15.975},
+  {k:"Sanità", d:"ospedali, medici di base, farmaci, prevenzione", g:6.6},
+  {k:"Altra protezione sociale", d:"invalidità, aiuti alle famiglie e ai figli, disoccupazione, contrasto alla povertà", g:5.325},
+  {k:"Interessi sul debito", d:"quello che lo Stato paga ogni anno a chi gli ha prestato soldi (titoli di Stato)", g:4.0},
+  {k:"Istruzione", d:"scuole dall'infanzia alle superiori, università, borse di studio", g:4.0},
+  {k:"Funzionamento dello Stato", d:"Parlamento, governo, ministeri, riscossione delle tasse, rapporti con l'estero, aiuti ad altri Paesi", g:3.7},
+  {k:"Aiuti all'economia", d:"incentivi alle imprese, agricoltura, energia, politiche del lavoro", g:2.7},
+  {k:"Trasporti", d:"strade, ferrovie, trasporto pubblico locale, porti e aeroporti", g:2.4},
+  {k:"Sicurezza, ambiente, casa e cultura", d:"polizia, vigili del fuoco, tribunali e carceri; rifiuti e depurazione delle acque; edilizia pubblica e illuminazione; musei, sport, biblioteche", g:4.4},
+  {k:"Difesa", d:"forze armate e missioni militari", g:1.3}
+].map(x=>({...x, p: x.g/PIL_TOT*100})).sort((a,b)=>b.p-a.p);
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString("it-IT") + " €";
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function detrazioneLavoro(r){
+  if (r <= 15000) return 1955;
+  if (r <= 28000) return 1910 + 1190*(28000-r)/13000 + (r > 25000 ? 65 : 0);
+  if (r <= 50000) return 1910*(50000-r)/22000 + (r <= 35000 ? 65 : 0);
+  return 0;
+}
+function irpefLorda(r){
+  let t = Math.min(r,28000)*0.23;
+  if (r > 28000) t += (Math.min(r,50000)-28000)*0.33;
+  if (r > 50000) t += (r-50000)*0.43;
+  return t;
+}
+function calc(ral){
+  const inpsAz = ral*AZ_RATE;
+  const inpsAgg = Math.max(0, ral - INPS_FASCIA)*0.01;
+  const inpsTu = ral*INPS_RATE + inpsAgg;
+  const imp = Math.max(0, ral - inpsTu);
+  const lorda = irpefLorda(imp);
+  const detrBase = Math.min(detrazioneLavoro(imp), lorda);
+  let ult = 0;
+  if (imp > 20000 && imp <= 32000) ult = 1000;
+  else if (imp > 32000 && imp <= 40000) ult = 1000*(40000-imp)/8000;
+  ult = Math.min(ult, lorda - detrBase);
+  const detr = detrBase + ult;
+  const irpef = Math.max(0, lorda - detr);
+  const tfr = ral/13.5;
+  const ti = (imp <= 15000 && lorda > detrazioneLavoro(imp) - 75) ? 1200 : 0;
+  let esente = 0;
+  if (imp <= 8500) esente = imp*0.071; else if (imp <= 15000) esente = imp*0.053; else if (imp <= 20000) esente = imp*0.048;
+  const bonus = ti + esente;
+  const netto = ral - inpsTu - irpef + bonus;
+  return {ral, inpsAz, inpsAgg, inpsTu, imp, lorda, detrBase, ult, detr, irpef, ti, esente, bonus, netto, tfr, costo: ral+inpsAz+tfr};
+}
+
+/* Schermata 1 */
+const lordoIn = $("lordo"), go = $("go");
+// Accetta 2300, 2300,50 e anche 2.300 (punto delle migliaia)
+function parseLordo(s){
+  s = String(s).replace(/[€\s]/g, "");
+  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "");
+  s = s.replace(",", ".");
+  const n = parseFloat(s);
+  return isFinite(n) ? n : 0;
+}
+lordoIn.addEventListener("input", () => { const c = lordoIn.value.replace(/[^\d.,]/g, ""); if (c !== lordoIn.value) lordoIn.value = c; });
+const valid = () => parseLordo(lordoIn.value) >= 100;
+lordoIn.addEventListener("input", ()=> go.disabled = !valid());
+lordoIn.addEventListener("keydown", e=>{ if (e.key === "Enter" && valid()) start(); });
+document.querySelectorAll(".chips [data-v]").forEach(b=>b.addEventListener("click",()=>{lordoIn.value=b.dataset.v; go.disabled=false; lordoIn.focus();}));
+go.addEventListener("click", start);
+$("again").addEventListener("click", ()=>{ show("s-intro"); lordoIn.focus(); lordoIn.select(); });
+
+function show(id){
+  ["s-intro","s-load","s-res"].forEach(s=>$(s).hidden = s !== id);
+  window.scrollTo({top:0});
+}
+
+/* Schermata 2 */
+const STEPS = [
+  "Calcolo il lordo annuo",
+  "Aggiungo i contributi a carico dell'azienda",
+  "Tolgo i tuoi contributi INPS",
+  "Applico gli scaglioni IRPEF 2026",
+  "Sottraggo detrazioni e taglio del cuneo",
+  "Divido le imposte tra le voci di spesa pubblica"
+];
+let timer = null;
+function start(){
+  if (!valid()) return;
+  show("s-load");
+  $("steps").innerHTML = STEPS.map(s=>`<div class="step"><span class="ic"></span><span>${s}</span></div>`).join("");
+  const els = [...document.querySelectorAll(".step")];
+  const DUR = reduce ? 400 : 4000;
+  $("arc").setAttribute("stroke-dashoffset", "276.46");
+  $("check").setAttribute("hidden", ""); $("pct").hidden = false;
+  $("pct").textContent = "0%";
+  cancelAnimationFrame(timer);
+  const t0 = performance.now();
+  const frame = now => {
+    const k = Math.min(1, (now - t0) / DUR);
+    const e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;
+    const pct = Math.round(e * 100);
+    $("pct").textContent = pct + "%";
+    $("arc").setAttribute("stroke-dashoffset", (276.46 * (1 - e)).toFixed(2));
+    const idx = Math.min(els.length - 1, Math.floor(e * els.length));
+    els.forEach((el, j) => { el.classList.toggle("done", j < idx || k === 1); el.classList.toggle("run", j === idx && k < 1); });
+    if (k < 1) timer = requestAnimationFrame(frame);
+    else {
+      $("pct").hidden = true; $("check").removeAttribute("hidden");
+      setTimeout(()=>{ renderResult(); show("s-res"); }, reduce ? 150 : 900);
+    }
+  };
+  timer = requestAnimationFrame(frame);
+}
+
+/* Schermata 3 */
+const TAGS = {A:"--c-azienda", T:"--c-tfr", B:"--c-inps", C:"--c-irpef", E:"--c-bonus"};
+function renderResult(){
+  const mens = Math.min(14, Math.max(12, +$("mens").value || 13));
+  const lordo = parseLordo(lordoIn.value);
+  const c = calc(lordo*mens);
+  const m = v => v/mens;
+  const R = Math.round;
+  // Cifre mensili arrotondate una volta sola, cosi somme e differenze tornano sempre al centesimo... anzi all'euro
+  const irpefA = R(c.lorda) - R(c.detr);
+  const d = {};
+  d.ral = R(lordo); d.inpsAz = R(c.inpsAz/mens); d.tfr = R(c.tfr/mens); d.inpsTu = R(c.inpsTu/mens);
+  d.irpef = R(irpefA/mens); d.bonus = R(c.bonus/mens);
+  d.costo = d.ral + d.inpsAz + d.tfr; d.imp = d.ral - d.inpsTu; d.netto = d.imp - d.irpef + d.bonus;
+  const taxesM = Math.max(0, d.irpef - d.bonus);
+
+  $("r-lordo").textContent = fmt(lordo);
+  $("r-costo").textContent = fmt(d.costo);
+  $("r-explain").innerHTML = `In busta paga vedi <b>${fmt(lordo)}</b> lordi, ma l'azienda ne spende <b>${fmt(d.costo)}</b>.`;
+
+  // Barra: ogni euro del costo del lavoro
+  const extraBonus = Math.max(0, d.bonus - d.irpef);
+  const segs = [
+    ["Contributi azienda", d.inpsAz, "--c-azienda", d.inpsAz],
+    ["TFR accantonato", d.tfr, "--c-tfr", d.tfr],
+    ["Contributi tuoi", d.inpsTu, "--c-inps", d.inpsTu],
+    ["IRPEF", taxesM, "--c-irpef", taxesM],
+    ["Netto a te", d.netto - extraBonus, "--c-netto", d.netto]
+  ];
+  const tot = segs.reduce((s,x)=>s+x[1],0) || 1;
+  const pctOf = v => Math.round(v/tot*100);
+  $("bar").innerHTML = segs.map((s,i)=>`<button type="button" class="seg" data-i="${i}" aria-label="${s[0]}: ${fmt(s[3])}, ${pctOf(s[1])}%" style="width:${s[1]/tot*100}%;background:var(${s[2]});animation-delay:${i*90}ms"></button>`).join("");
+  $("legend").innerHTML = segs.map((s,i)=>`<button type="button" data-i="${i}"><i style="background:var(${s[2]})"></i>${s[0]} <span class="mono">${fmt(s[3])}</span></button>`).join("");
+  const bar = $("bar"), tip = $("tip");
+  const showSeg = i => {
+    const el = bar.querySelector(`.seg[data-i="${i}"]`); if (!el) return;
+    bar.querySelectorAll(".seg").forEach(x=>x.classList.toggle("on", x===el));
+    bar.classList.add("hovering");
+    const s = segs[i];
+    tip.innerHTML = `${s[0]}: <b>${fmt(s[3])}</b> · <b>${pctOf(s[1])}%</b>` + (i===4 && extraBonus>0 ? ` <span style="opacity:.7">(con ${fmt(extraBonus)} di bonus)</span>` : "");
+    tip.hidden = false;
+    const wrap = bar.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const tw = tip.offsetWidth, center = r.left - wrap.left + r.width/2;
+    tip.style.left = Math.min(Math.max(center, tw/2), wrap.width - tw/2) + "px";
+    tip.style.setProperty("--x", "0");
+  };
+  const hideSeg = () => { bar.classList.remove("hovering"); bar.querySelectorAll(".seg").forEach(x=>x.classList.remove("on")); tip.hidden = true; };
+  bar.querySelectorAll(".seg").forEach(el=>{
+    const i = +el.dataset.i;
+    el.addEventListener("mouseenter", ()=>showSeg(i));
+    el.addEventListener("focus", ()=>showSeg(i));
+    el.addEventListener("click", ()=>showSeg(i));
+  });
+  bar.addEventListener("mouseleave", hideSeg);
+  bar.addEventListener("focusout", e=>{ if (!bar.contains(e.relatedTarget)) hideSeg(); });
+  $("legend").querySelectorAll("button").forEach(b=>{
+    b.addEventListener("mouseenter", ()=>showSeg(+b.dataset.i));
+    b.addEventListener("mouseleave", hideSeg);
+    b.addEventListener("click", ()=>showSeg(+b.dataset.i));
+  });
+  const pct = v => Math.round(v/d.costo*100) + "%";
+  $("s-netto").textContent = pct(d.netto);
+  $("s-inps").textContent = pct(d.inpsAz + d.inpsTu);
+  $("s-tax").textContent = pct(taxesM);
+
+  // Spiegazioni
+  const n2 = v => Math.round(v).toLocaleString("it-IT");
+  const V = (ref, title, amount, sign, calcHtml, what, where, back) => `
+    <details class="voce" id="v-${ref}"><summary><span class="stripe" style="background:var(${TAGS[ref]})"></span>
+      <span class="ttl">${title}</span><span class="amt" style="color:var(${TAGS[ref]})">${sign}${fmt(amount)}</span><span class="chev" aria-hidden="true"></span></summary>
+      <div class="body">
+        <div class="calc" style="--vc:var(${TAGS[ref]})"><span>Come si calcola</span>${calcHtml}</div>
+        <dl class="kv"><dt>Cos'è</dt><dd>${what}</dd><dt>Dove va</dt><dd>${where}</dd><dt>Ti torna?</dt><dd>${back}</dd></dl>
+      </div>
+    </details>`;
+  const S = (label, val) => `<div class="subtotal"><span>${label}</span><span>${fmt(val)}</span></div>`;
+
+  let h = "";
+  h += S("Costo totale per l'azienda", d.costo);
+  h += V("A", "Contributi INPS dell'azienda", d.inpsAz, "− ",
+    `<b>${n2(lordo)} €</b> lordo × <b>30%</b> = <b class="res">${n2(d.inpsAz)} €</b><small>L'azienda prende il tuo lordo e ne calcola il 30%. Questa cifra la paga lei, <b>in aggiunta</b> al tuo stipendio: a te non viene tolto niente, il tuo lordo resta uguale. Il 30% è un valore medio: cambia un po' in base al settore e a quanti dipendenti ha l'azienda.</small>`,
+    `Una somma che l'azienda paga sopra il tuo stipendio e manda direttamente all'INPS. In busta paga non la vedi.`,
+    `All'INPS, l'ente pubblico della previdenza. Con questi soldi paga <b>oggi</b>: le pensioni di chi ha già smesso di lavorare, la malattia e la maternità di chi è a casa, la disoccupazione (NASpI) di chi ha perso il lavoro, la cassa integrazione. Una piccola parte va all'INAIL, l'assicurazione per gli infortuni sul lavoro.`,
+    `Sì, ma non come un salvadanaio. I soldi non restano fermi a tuo nome: escono subito per pagare le pensioni di oggi. Quello che resta a te è un <b>conteggio</b>: l'INPS segna quanto hai versato, e su quel totale calcolerà la tua pensione. Quando sarà il momento, a pagarla saranno i contributi di chi lavorerà allora. In più, se ti ammali, diventi genitore o perdi il lavoro, è questo sistema che ti paga.`);
+  h += V("T", "TFR (trattamento di fine rapporto)", d.tfr, "− ",
+    `<b>${n2(c.ral)} €</b> lordo annuo ÷ <b>13,5</b> = <b>${n2(c.tfr)} €</b> l'anno, cioè <b class="res">${n2(d.tfr)} €</b> al mese<small>La legge dice di dividere la retribuzione annua per 13,5: in pratica circa una mensilità all'anno. Anche questo si aggiunge sopra il lordo.</small>`,
+    `Una parte di stipendio che l'azienda mette da parte per te.`,
+    `Resta in azienda e cresce un po' ogni anno, oppure va a un fondo pensione se l'hai scelto.`,
+    `Sì, tutto. È uno stipendio rimandato: lo ricevi quando lasci quel lavoro (dimissioni, licenziamento, pensione). In alcuni casi puoi chiederne un anticipo, per esempio per comprare casa.`);
+  h += S("= Stipendio lordo", d.ral);
+  h += V("B", "Contributi INPS tuoi", d.inpsTu, "− ",
+    (c.inpsAgg > 0
+      ? `<b>${n2(lordo)} €</b> lordo × <b>9,19%</b> + <b>1%</b> sulla parte oltre ${n2(INPS_FASCIA)} € l'anno = <b class="res">${n2(d.inpsTu)} €</b><small>Questa volta esce <b>dal</b> tuo lordo: è una trattenuta. Sopra i ${n2(INPS_FASCIA)} € l'anno si aggiunge l'1%.</small>`
+      : `<b>${n2(lordo)} €</b> lordo × <b>9,19%</b> = <b class="res">${n2(d.inpsTu)} €</b><small>Questa volta esce <b>dal</b> tuo lordo: è una trattenuta.</small>`),
+    `Una parte del tuo stipendio che l'azienda trattiene dalla busta paga e versa all'INPS a tuo nome.`,
+    `Stesso posto dei contributi dell'azienda: l'INPS, che li usa per pagare pensioni e indennità di oggi.`,
+    `Sì, nello stesso modo: si somma al conteggio della tua pensione futura. Più anni lavori e più guadagni, più alta sarà. In più su questa parte non paghi IRPEF.`);
+  h += S("= Su questo si calcola l'IRPEF", d.imp);
+  h += V("C", "IRPEF", d.irpef, "− ",
+    `<b>${n2(lordo)} €</b> − <b>${n2(d.inpsTu)} €</b> contributi = <b>${n2(d.imp)} €</b> imponibile<br>
+     Su un anno: ${n2(c.imp)} € tassati a scaglioni = <b>${n2(c.lorda)} €</b> − detrazioni <b>${n2(c.detr)} €</b> = <b>${n2(irpefA)} €</b><br>
+     ${n2(irpefA)} € ÷ ${mens} mensilità = <b class="res">${n2(d.irpef)} €</b> al mese
+     <small>Scaglioni: 23% fino a 28.000 € l'anno, 33% da 28.000 a 50.000 €, 43% oltre. Ogni aliquota vale solo per la parte di reddito dentro quel gradino. Le detrazioni sono uno sconto per chi lavora come dipendente, più alto per i redditi bassi.</small>`,
+    `L'imposta sul reddito. Si paga sul lordo meno i tuoi contributi.`,
+    `Allo Stato. Non ha un uso preciso: entra nella cassa comune e paga di tutto, dalla sanità alla scuola, dalle pensioni agli interessi sul debito. Il dettaglio è nella sezione qui sotto.`,
+    `Non in soldi, ma in servizi: l'ospedale, la scuola, le strade, la polizia. Li usi anche se non ci pensi.`);
+  if (d.bonus > 0) h += V("E", "Bonus dallo Stato", d.bonus, "+ ",
+    `Trattamento integrativo (fino a 1.200 € l'anno sotto i 15.000 € di reddito) e somma esente del cuneo fiscale (dal 4,8% al 7,1% del reddito sotto i 20.000 €): <b class="res">${n2(d.bonus)} €</b> al mese`,
+    `Soldi in più previsti per chi guadagna poco.`,
+    `Direttamente in busta paga.`,
+    `Sono già tuoi: alzano il netto senza toccare i contributi, quindi senza ridurre la pensione futura.`);
+  h += S("= Netto del mese", d.netto).replace('<span>${','<span>${').replace('class="subtotal"','class="subtotal net"');
+  $("voci").innerHTML = h;
+
+  $("taxTot").textContent = fmt(taxesM) + " al mese";
+  const max = Math.max(...COFOG.map(x=>x.p));
+  const raw = COFOG.map(x=>taxesM*x.p/100), flo = raw.map(Math.floor);
+  let left = taxesM - flo.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-flo[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if (left>0){ flo[i]++; left--; } });
+  $("split").innerHTML = COFOG.map((x,i)=>{
+      const v = flo[i];
+      const pc = x.p.toLocaleString("it-IT",{minimumFractionDigits:1, maximumFractionDigits:1});
+      return `<details class="voce srow2"><summary><span class="stripe" style="background:var(--c-irpef)"></span>
+        <span class="ttl"><span class="tname">${x.k}</span><span class="mbar"><span style="width:${x.p/max*100}%"></span></span></span><span class="pc">${pc}% di ${fmt(taxesM)}</span><span class="amt">${fmt(v)}</span><span class="chev" aria-hidden="true"></span></summary>
+        <div class="body"><p class="sdesc">${x.d}</p></div></details>`;
+    }).join("") + `<div class="subtotal"><span>Totale imposte del mese</span><span>${fmt(taxesM)}</span></div>`;
+}
+</script>
+
+</body></html>
