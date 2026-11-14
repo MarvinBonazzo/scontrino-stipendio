@@ -7,7 +7,7 @@ Versione "a storie" (stile Spotify Wrapped) dello Scontrino delle tasse, pensata
 - `index.html`: pagina unica e autosufficiente (HTML + CSS + JS inline). Unica risorsa esterna: Google Fonts (Archivo, Space Mono).
 
 ## Come funziona
-- Prima schermata: si sceglie un personaggio (Barista 1.400 €, Infermiera 2.000 €, Programmatrice 3.000 € lordi al mese) oppure si scrive il proprio lordo mensile.
+- Prima schermata: si sceglie un lavoro (Barista 1.400 €, Infermiera 2.000 €, Programmatrice 3.000 € lordi al mese) oppure si scrive il proprio lordo mensile.
 - `build(nome, lordo)` calcola tutto e riempie le schermate. Poi si va avanti toccando a destra e indietro toccando a sinistra.
 - I personaggi sono nell'array `WHO`. Sono esempi, non medie statistiche: se li cambi, lascia la nota "Stipendi di esempio".
 
@@ -42,11 +42,12 @@ Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può tocc
 - Se aggiungi una parola tecnica nuova, aggiungi anche la sua voce in `GLOSS`.
 
 ## Regole di testo
+- Si dà sempre del tu, con rispetto: anche quando si sceglie un lavoro di esempio, chi legge è "tu" ("il tuo netto", "paghi").
+- Diretto, senza addolcire: "Pensioni" e "anziani", non "nonni"; "Sussidi e assistenza", non "aiuti a chi ha bisogno". I nomi delle 13 voci sono gli stessi del Wrapped dello Stato.
 - Linguaggio per un ragazzo di 12-14 anni, con una metafora o un esempio pratico per ogni concetto.
 - Nessuna sigla o parola tecnica senza spiegazione: o si spiega nella frase, o si rende toccabile con il glossario.
 - Solo informazioni utili, niente curiosità fini a sé stesse. Tono neutro, nessun giudizio politico.
 - Dire sempre cosa semplifica: niente addizionali regionali e comunali, nessun familiare a carico, contributi azienda come media.
 
 ## Cose da sistemare
-- Con "Tu" (lordo scritto a mano) i testi restano in terza persona ("il suo lavoro"). Va aggiunta la seconda persona.
 - Pulsante per esportare lo scontrino finale come immagine da condividere.
