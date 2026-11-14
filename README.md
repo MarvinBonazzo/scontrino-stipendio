@@ -4,6 +4,8 @@ Scrivi il tuo stipendio lordo e scopri quanto costa davvero il tuo lavoro, quant
 
 ### 👉 [Apri lo scontrino](https://marvinbonazzo.github.io/scontrino-stipendio/)
 
+Per ragazzi: **[Il Wrapped del tuo stipendio](https://marvinbonazzo.github.io/scontrino-stipendio/wrapped/)**, lo stesso conto raccontato a storie, una schermata alla volta.
+
 Progetto gemello: **[Scontrino pubblico](https://marvinbonazzo.github.io/scontrino-pubblico/)**, che mostra quanto spende il settore pubblico per ogni residente, in Italia e in ognuno dei circa 7.900 Comuni ([codice](https://github.com/MarvinBonazzo/scontrino-pubblico)).
 
 ---
@@ -67,3 +69,4 @@ Basta aprire `index.html` con un doppio clic: la pagina non carica altri file.
 | File | A cosa serve |
 | --- | --- |
 | `index.html` | La pagina completa: stile, testi, calcoli e dati della spesa pubblica. |
+| `wrapped/` | Il Wrapped dello stipendio: lo stesso calcolo raccontato a storie, per ragazzi delle medie e superiori. Regole in `wrapped/CLAUDE.md`. |
