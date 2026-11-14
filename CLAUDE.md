@@ -39,7 +39,7 @@ La parola "Wrapped" non si usa: i due progetti si chiamano Scontrino dello Stipe
 **Stessi numeri dello Scontrino dello Stato**: le 13 voci di `COFOG` (nomi e milioni), `ENTRATE_TOT`, IVA, accise e residenti devono restare uguali all'array `V` e agli altri dati di `scontrino-pubblico/index.html`. Se cambi un dato, cambialo in tutti e due.
 
 ## Fine della storia
-Sotto lo scontrino finale: "Prova un altro lavoro", poi i link "Scontrino dello Stipendio" e "Scontrino dello Stato" e il bottone "Fonti, calcoli e numeri interi". Il pannello `#info` si riempie in `build()`: il conto di un anno per lo stipendio scelto (ogni valore arrotondato una volta sola), le regole fiscali usate, la spesa pubblica 2024 in euro interi, le formule e i link alle fonti. Se cambi le regole in `calc()`, aggiorna anche il testo delle regole nel pannello.
+Sotto lo scontrino finale: "Prova un altro lavoro", poi il link "Scontrino dello Stato" e il bottone "Fonti, calcoli e numeri interi". Il pannello `#info` si riempie in `build()`: il conto di un anno per lo stipendio scelto (ogni valore arrotondato una volta sola), le regole fiscali usate, la spesa pubblica 2024 in euro interi, le formule e i link alle fonti. Se cambi le regole in `calc()`, aggiorna anche il testo delle regole nel pannello.
 
 ## Parole spiegate (glossario)
 Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può toccare e apre un cartoncino in basso con la spiegazione.
