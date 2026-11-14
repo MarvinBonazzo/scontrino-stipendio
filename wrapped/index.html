@@ -72,6 +72,7 @@ hr{border:0;border-top:2px dashed #2226;margin:12px 0}
 .bc{height:46px;margin:14px auto 6px;width:80%;background:repeating-linear-gradient(90deg,#222 0 2px,#0000 2px 4px,#222 4px 7px,#0000 7px 9px,#222 9px 10px,#0000 10px 13px)}
 .src{font-size:12px;opacity:.7;margin-top:10px}
 .again{font:700 16px Archivo,sans-serif;min-height:48px;padding:0 22px;border-radius:99px;border:0;background:#ffd60a;color:#111;cursor:pointer;margin-top:18px;align-self:center}
+.again.link{display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;background:#fff;margin-top:0;padding:10px 22px;line-height:1.25}
 u{text-decoration:underline dotted 2px;text-underline-offset:3px}
 u[data-w]{cursor:pointer;border-radius:4px}
 u[data-w]:hover{background:#fff4}
@@ -147,23 +148,49 @@ button:focus-visible,input:focus-visible,u[data-w]:focus-visible{outline:3px sol
   </section>
 
   <section class="slide b">
-    <span class="chip">Dove va la sua <u data-w="irpef">IRPEF</u></span>
-    <h2>Ogni mese finanzia</h2>
+    <span class="chip"><u data-w="contributi">Contributi</u> + <u data-w="irpef">IRPEF</u> = <span data-f="pub"></span> al mese</span>
+    <h2>Ecco cosa pagano i soldi del suo lavoro</h2>
     <div class="cmp" id="cofog"></div>
-    <p class="note">Le tasse non hanno un'etichetta: è come sarebbero divise se seguissero la <u data-w="spesa">spesa pubblica</u> del 2024 (dati <u data-w="eurostat">Eurostat</u>).</p>
+    <p class="note">I soldi non hanno un'etichetta: è come sarebbero divisi se seguissero la <u data-w="spesa">spesa pubblica</u> del 2024 (dati <u data-w="eurostat">Eurostat</u>). Le prime 6 voci su 13: le altre sono nello scontrino finale.</p>
+  </section>
+
+  <section class="slide y">
+    <span class="chip">Da sapere</span>
+    <span class="sticker">👵</span>
+    <h2>Perché contiamo anche i contributi?</h2>
+    <p>I <u data-w="contributi">contributi</u> vanno all'<u data-w="inps">INPS</u> per le pensioni. Ma non bastano: il resto lo mette lo Stato con le altre tasse. Alla fine è una cassa sola.</p>
+    <div class="cmp"><div><span>Pensioni pagate nel 2024</span><em>360 miliardi</em><i><b style="--w:100.0%"></b></i></div><div><span>Contributi incassati nel 2024</span><em>278 miliardi</em><i><b style="--w:77.4%"></b></i></div></div>
+  </section>
+
+  <section class="slide p">
+    <span class="chip">Plot twist</span>
+    <span class="sticker">💳</span>
+    <h2>Lo Stato spende più di quanto incassa</h2>
+    <div class="big"><span data-k="extra">0</span><small> €</small></div>
+    <p>al mese in più sui suoi soldi, presi in prestito. Nel 2024 lo Stato ha speso 107&nbsp;€ ogni 100 incassati: è il <u data-w="deficit">deficit</u>. Lo copre vendendo <u data-w="btp">BTP e BOT</u>, come pagare con la carta di credito. Tutti i prestiti degli anni passati fanno il <u data-w="debito">debito pubblico</u>: circa 50.343&nbsp;€ a testa.</p>
   </section>
 
   <section class="slide o">
     <span class="sticker">⏳</span>
     <h2>Se pagasse tutto per primo, lavorerebbe per INPS e IRPEF fino al</h2>
     <div class="big" style="font-size:clamp(52px,16vw,84px)" data-f="data"></div>
-    <p>Dal giorno dopo, quello che guadagna resta in tasca. E quando spende, paga ancora l'<u data-w="iva">IVA</u>: in una felpa da 30 € ci sono 5,41 € di IVA.</p>
+    <p>Dal giorno dopo, quello che guadagna resta in tasca. Ma non è finita: quando lo spende, paga altre tasse.</p>
+  </section>
+
+  <section class="slide l">
+    <span class="chip">Le tasse che non si vedono</span>
+    <span class="sticker">🛍️</span>
+    <h2>Quando spende, paga ancora</h2>
+    <div class="cmp"><div><span><u data-w="iva">IVA</u></span><em>6,75 €</em><i><b style="--w:100.0%"></b></i></div><div><span><u data-w="accise">Accise</u> e imposte sui consumi</span><em>4,60 €</em><i><b style="--w:68.1%"></b></i></div></div>
+    <p class="note">Euro al giorno, in media per ogni persona che vive in Italia, bambini compresi.</p>
+    <p>L'IVA è già nel prezzo: in una felpa da 30 € ci sono 5,41&nbsp;€. Le accise sono nella benzina, nelle bollette, nelle sigarette. E ci sono le <u data-w="addizionale">addizionali</u> di Regione e Comune, che cambiano da posto a posto: qui non le contiamo.</p>
   </section>
 
   <section class="slide k" id="last">
     <span class="chip">La busta paga, come scontrino</span>
     <div class="receipt" id="rc"></div>
     <button class="again" id="again" type="button">Prova un'altra persona</button>
+    <a class="again link" href="https://marvinbonazzo.github.io/scontrino-pubblico/wrapped/">E tutti gli altri soldi? Il Wrapped dello Stato →</a>
   </section>
 
   <div class="sheet" id="sheet" role="dialog" aria-labelledby="sh-t" hidden>
@@ -232,13 +259,19 @@ const GLOSS = {
   cuneo: ["Taglio del cuneo fiscale", "Il \"cuneo\" è la differenza tra quanto spende l'azienda e quanto arriva a chi lavora. Il taglio è un aiuto dello Stato che lascia qualche euro in più nello stipendio, soprattutto a chi guadagna meno."],
   spesa: ["Spesa pubblica", "Tutti i soldi che Stato, Regioni e Comuni spendono in un anno: pensioni, ospedali, scuole, strade e tutto il resto."],
   eurostat: ["Eurostat", "L'ufficio statistico dell'Unione europea. Raccoglie i conti di tutti i Paesi con le stesse regole, così si possono confrontare."],
-  debito: ["Interessi sul debito", "Negli anni lo Stato ha preso soldi in prestito. Come chi ha un mutuo per la casa, ogni anno paga un extra, gli interessi, a chi glieli ha prestati."],
-  iva: ["IVA", "Imposta sul Valore Aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che si compra. Il negozio la incassa e la gira allo Stato."]
+  interessi: ["Interessi sui prestiti", "Negli anni lo Stato ha preso soldi in prestito. Come chi ha un mutuo per la casa, ogni anno paga un extra, gli interessi, a chi glieli ha prestati."],
+  debito: ["Debito pubblico", "Tutti i soldi che lo Stato ha preso in prestito negli anni e non ha ancora restituito. Ogni anno ci si pagano sopra gli interessi."],
+  deficit: ["Deficit", "Quando in un anno si spende più di quanto entra. La differenza si prende in prestito, e il debito cresce."],
+  btp: ["BTP e BOT", "Titoli di Stato: dei «pagherò» che lo Stato vende per farsi prestare soldi. Chi li compra presta soldi allo Stato e li riavrà indietro con gli interessi."],
+  iva: ["IVA", "Imposta sul Valore Aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che si compra. Il negozio la incassa e la gira allo Stato."],
+  accise: ["Accise", "Una tassa fissa su ogni litro o chilo di certi prodotti: benzina, gasolio, luce, gas, sigarette, alcolici. Resta uguale anche se il prezzo cambia."],
+  addizionale: ["Addizionali", "Piccoli pezzi di IRPEF in più che vanno alla Regione e al Comune dove si vive. La percentuale la decidono loro, entro i limiti della legge."]
 };
 const W = (k,t) => `<u data-w="${k}">${t}</u>`;
-/* Spesa pubblica 2024 per funzione, Eurostat COFOG, in milioni di euro: stessi numeri dello Scontrino delle tasse e dello Scontrino pubblico.
-   "Sicurezza e ambiente" somma sicurezza e giustizia, ambiente, cultura e sport, casa e territorio. */
-const COFOG = [["👵 Nonni in pensione",359572],["🏥 Ospedali e medici",146075],["🤝 Aiuti a chi ha bisogno",108563],["🎒 Scuola",89180],["💳 "+W("debito","Interessi sul debito"),87789],["🏛️ Far funzionare lo Stato",82625],["🏭 Aiuti alle aziende",60557],["🚆 Strade, treni e bus",51824],["🚓 Sicurezza e ambiente",39094+19828+18774+16973],["🪖 Esercito",28301]];
+/* Spesa pubblica 2024 per funzione, Eurostat COFOG, in milioni di euro: le stesse 13 voci (e gli stessi nomi semplici)
+   del Wrapped dello Stato, con gli stessi numeri dello Scontrino delle tasse e dello Scontrino pubblico. */
+const COFOG = [["👵 Nonni in pensione",359572],["🏥 Ospedali e medici",146075],["🤝 Aiuti a chi ha bisogno",108563],["🎒 Scuola",89180],["💳 "+W("interessi","Interessi sui prestiti"),87789],["🏛️ Far funzionare lo Stato",82625],["🏭 Aiuti alle aziende",60557],["🚆 Strade, treni e bus",51824],["🚓 Polizia e tribunali",39094],["🪖 Difesa",28301],["♻️ Rifiuti e ambiente",19828],["⚽ Musei e sport",18774],["💡 Case popolari e lampioni",16973]];
+const SPESA_TOT = COFOG.reduce((a,x)=>a+x[1],0), ENTRATE_TOT = 1036025;   // milioni di euro, 2024
 const $ = id => document.getElementById(id);
 const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
 const parse = s => { s = String(s).replace(/[€\s]/g,""); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s.replace(",",".")); return isFinite(n) ? n : 0; };
@@ -252,11 +285,13 @@ function build(name, lordo){
   d.irpef = R((R(c.lorda)-R(c.detr))/MENS); d.bonus = R(c.bonus/MENS);
   d.costo = d.lordo + d.az + d.tfr; d.netto = d.lordo - d.tu - d.irpef + d.bonus;
   d.tax = Math.max(0, d.irpef - d.bonus); d.contr = d.az + d.tu; d.imp = c.imp;
+  d.pub = d.contr + d.tax;                                  // tutto quello che dal suo lavoro va al settore pubblico
+  d.extra = R(d.pub*(SPESA_TOT/ENTRATE_TOT - 1));           // parte in più spesa e presa in prestito, in proporzione
   D = d;
   const set = (k,v) => document.querySelectorAll(`[data-f="${k}"]`).forEach(e=>e.innerHTML = v);
   document.querySelectorAll("[data-k]").forEach(e=>e.dataset.n = d[e.dataset.k] ?? d.tax);
   document.querySelector('[data-k="irpef"]').dataset.n = d.tax;
-  set("nome", name); set("lordo", eur(d.lordo)+" €"); set("az", eur(d.az)+" €"); set("tu", eur(d.tu)+" €");
+  set("nome", name); set("pub", eur(d.pub)+" €"); set("lordo", eur(d.lordo)+" €"); set("az", eur(d.az)+" €"); set("tu", eur(d.tu)+" €");
   set("fette", Math.max(1,Math.round(d.netto/d.costo*10)));
   const sp = [[W("netto","Netto")+" sul conto",d.netto],[W("contributi","Contributi")+" pagati dall'azienda",d.az],[W("contributi","Contributi")+" tolti dallo stipendio",d.tu],[W("irpef","IRPEF"),d.tax],[W("tfr","TFR")+" messo da parte",d.tfr]];
   $("split").innerHTML = sp.map(x=>bar(x[0],x[1],d.netto)).join("");
@@ -268,7 +303,11 @@ function build(name, lordo){
   set("irpefTxt", d.tax < 30
     ? `Quasi niente: per chi guadagna poco ci sono sconti sulle tasse, le ${W("detrazioni","detrazioni")}, e il ${W("cuneo","taglio del cuneo fiscale")}. Insieme portano l'IRPEF quasi a zero.`
     : `Chi guadagna di più ha percentuali più alte, ma le ${W("detrazioni","detrazioni")} e il ${W("cuneo","taglio del cuneo")} abbassano il conto. Su ogni 100 € ${W("lordo","lordi")} ne vanno in IRPEF circa ${Math.round(d.tax/d.lordo*100)}.`);
-  const tot = COFOG.reduce((a,x)=>a+x[1],0), cf = COFOG.map(x=>[x[0], d.tax*x[1]/tot]);
+  // Euro interi che sommati fanno esattamente d.pub: i resti vanno alle voci con la parte decimale più grande
+  const rawc = COFOG.map(x=>d.pub*x[1]/SPESA_TOT), flo = rawc.map(Math.floor);
+  let rest = d.pub - flo.reduce((a,b)=>a+b,0);
+  rawc.map((v,i)=>[v-flo[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if (rest>0){ flo[i]++; rest--; } });
+  const cf = COFOG.map((x,i)=>[x[0], flo[i]]);
   $("cofog").innerHTML = cf.slice(0,6).map(x=>bar(x[0],x[1],cf[0][1])).join("");
   const share = (d.az + d.tu + d.tax)/d.costo, day = new Date(2026,0,1); day.setDate(day.getDate() + Math.round(share*365) - 1);
   set("data", day.toLocaleDateString("it-IT",{day:"numeric",month:"long"}));
@@ -279,10 +318,12 @@ function build(name, lordo){
     ${row("= "+W("lordo","Lordo")+" in busta", eur(d.lordo)+" €")}${row("- "+W("contributi","Contributi")+" suoi", eur(d.tu)+" €")}
     ${row("- "+W("irpef","IRPEF"), eur(d.irpef)+" €")}${d.bonus?row("+ "+W("cuneo","Taglio del cuneo"), eur(d.bonus)+" €"):""}<hr>
     ${row(W("netto","NETTO"), eur(d.netto)+" €","t")}<hr>
-    <div class="c">LA TUA IRPEF FINISCE IN</div>
-    ${cf.map(x=>row(x[0], eur(x[1])+" €")).join("")}
+    <div class="c">CONTRIBUTI + IRPEF FINISCONO IN</div>
+    ${cf.map(x=>row(x[0], eur(x[1])+" €")).join("")}<hr>
+    ${row("Totale soldi pubblici", eur(d.pub)+" €","t")}
+    ${row("+ spesi in più, a "+W("deficit","prestito"), eur(d.extra)+" €")}
     <div class="bc"></div><div class="c">GRAZIE E ARRIVEDERCI<br>al prossimo mese</div>
-    <div class="src">Cosa semplifica: regole 2026 per un dipendente che non mantiene figli o altri familiari. Non conta le piccole tasse in più di Regione e Comune (le addizionali). I contributi dell'azienda sono una media, il 30%. La divisione dell'IRPEF segue la spesa pubblica 2024 per settore (Eurostat). Il netto esatto è quello scritto in busta paga.</div>`;
+    <div class="src">Cosa semplifica: regole 2026 per un dipendente che non mantiene figli o altri familiari. Non conta le addizionali di Regione e Comune, né IVA e accise pagate quando si spende. I contributi dell'azienda sono una media, il 30%. Contributi e IRPEF sono divisi come la spesa pubblica 2024 per settore (Eurostat, COFOG); il prestito segue il rapporto tra spesa ed entrate 2024. Il netto esatto è quello scritto in busta paga.</div>`;
   prep();
   go(1);
 }

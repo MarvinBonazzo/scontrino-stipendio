@@ -27,9 +27,12 @@ Se cambiano le regole fiscali, aggiorna prima lo Scontrino delle tasse e poi ric
 | INPS | contributi azienda + tuoi; spiega che pagano le pensioni di oggi |
 | Scalini IRPEF | evidenzia lo scaglione del reddito imponibile |
 | IRPEF al mese | IRPEF meno taglio del cuneo |
-| Dove va l'IRPEF | IRPEF divisa secondo la spesa pubblica 2024 (Eurostat COFOG, milioni di euro, array `COFOG`, stessi numeri di `SPESA` in `../index.html`) |
+| Dove vanno i soldi del suo lavoro | contributi azienda + tuoi + IRPEF (`d.pub`), divisi secondo la spesa pubblica 2024 (Eurostat COFOG, milioni di euro, array `COFOG`: le stesse 13 voci e gli stessi nomi del Wrapped dello Stato, stessi numeri di `SPESA` in `../index.html`). Euro interi che sommano esattamente `d.pub` |
+| Perché anche i contributi | contributi 2024 (278 mld) contro pensioni 2024 (360 mld) |
+| Lo Stato spende più di quanto incassa | `d.extra` = `d.pub` × (spesa ÷ entrate 2024 − 1); debito 50.343 € a testa (Banca d'Italia, fine 2024 ÷ residenti ISTAT) |
 | Giorno di "liberazione" | (contributi azienda + tuoi + IRPEF) ÷ costo × 365, contato dal 1° gennaio |
-| Scontrino finale | busta paga riga per riga + dove finisce l'IRPEF |
+| Le tasse che non si vedono | IVA 6,75 € e accise 4,60 € al giorno per residente (stesse cifre del Wrapped dello Stato), addizionali solo spiegate |
+| Scontrino finale | busta paga riga per riga + dove finiscono contributi e IRPEF + parte presa in prestito; link al Wrapped dello Stato |
 
 ## Parole spiegate (glossario)
 Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può toccare e apre un cartoncino in basso con la spiegazione.
@@ -47,4 +50,3 @@ Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può tocc
 ## Cose da sistemare
 - Con "Tu" (lordo scritto a mano) i testi restano in terza persona ("il suo lavoro"). Va aggiunta la seconda persona.
 - Pulsante per esportare lo scontrino finale come immagine da condividere.
-- Collegare i due Wrapped: alla fine di questo, un link al Wrapped dello Stato e viceversa.
