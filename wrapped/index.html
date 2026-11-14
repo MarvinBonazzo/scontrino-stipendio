@@ -64,6 +64,7 @@ p{max-width:34ch;text-wrap:pretty}
 .receipt .c{text-align:center}
 .row{display:flex;gap:8px;align-items:baseline}
 .row .n{flex:1;display:flex;overflow:hidden;white-space:nowrap}
+.row .n>span{flex:none}
 .row .n::after{content:" ......................................";opacity:.35}
 .row .v{white-space:nowrap}
 .row.t{font-weight:700;font-size:17px}
@@ -71,7 +72,18 @@ hr{border:0;border-top:2px dashed #2226;margin:12px 0}
 .bc{height:46px;margin:14px auto 6px;width:80%;background:repeating-linear-gradient(90deg,#222 0 2px,#0000 2px 4px,#222 4px 7px,#0000 7px 9px,#222 9px 10px,#0000 10px 13px)}
 .src{font-size:12px;opacity:.7;margin-top:10px}
 .again{font:700 16px Archivo,sans-serif;min-height:48px;padding:0 22px;border-radius:99px;border:0;background:#ffd60a;color:#111;cursor:pointer;margin-top:18px;align-self:center}
-button:focus-visible,input:focus-visible{outline:3px solid #4361ff;outline-offset:3px}
+u{text-decoration:underline dotted 2px;text-underline-offset:3px}
+u[data-w]{cursor:pointer;border-radius:4px}
+u[data-w]:hover{background:#fff4}
+.tip{font-size:14px;font-weight:700}
+.hint{bottom:14px;padding:0 24px}
+.sheet{position:absolute;z-index:10;left:12px;right:12px;bottom:12px;background:#fff;color:#111;border:3px solid #111;border-radius:20px;box-shadow:4px 4px 0 #111;padding:18px 18px 16px;display:grid;gap:8px;animation:up .2s both}
+.sheet[hidden]{display:none}
+.sheet h3{font-weight:900;font-size:22px;line-height:1.1}
+.sheet p{max-width:none;font-size:16px}
+.sheet button{justify-self:start;font:700 15px Archivo,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:99px;background:#111;color:#fff;cursor:pointer}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+button:focus-visible,input:focus-visible,u[data-w]:focus-visible{outline:3px solid #4361ff;outline-offset:3px}
 @keyframes print{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0)}}
 @media (prefers-reduced-motion:reduce){.slide,.bars b,.cmp div i b{transition:none}.receipt.on-in{animation:none}}
 </style>
@@ -89,61 +101,63 @@ button:focus-visible,input:focus-visible{outline:3px solid #4361ff;outline-offse
       <label>€ <input id="lordo" inputmode="numeric" placeholder="Il tuo lordo mensile" aria-label="Il tuo lordo mensile"></label>
       <button id="go" disabled>Vai</button>
     </form>
-    <p class="note">Stipendi di esempio, lordi al mese su 13 mensilità.</p>
+    <p class="note">Stipendi di esempio: cifre <u data-w="lordo">lorde</u> al mese, per 13 <u data-w="mens">mensilità</u>.</p>
+    <p class="tip">👆 Le parole <u>sottolineate</u> si possono toccare: ti spiegano cosa vogliono dire.</p>
   </section>
 
   <section class="slide p">
     <span class="chip" data-f="nome"></span>
     <h2>Per il suo lavoro l'azienda spende ogni mese</h2>
     <div class="big"><span data-k="costo">0</span><small> €</small></div>
-    <p>Ma in busta paga c'è scritto <b data-f="lordo"></b> lordi. La differenza sono contributi e TFR che l'azienda paga sopra lo stipendio.</p>
+    <p>Ma in <u data-w="busta">busta paga</u> c'è scritto <b data-f="lordo"></b> <u data-w="lordo">lordi</u>. La differenza sono i <u data-w="contributi">contributi</u> e il <u data-w="tfr">TFR</u>: soldi che l'azienda paga in più, oltre allo stipendio.</p>
+    <span class="hint">Tocca a destra per andare avanti, a sinistra per tornare indietro</span>
   </section>
 
   <section class="slide b">
     <span class="sticker">🍕</span>
     <h2>Sul conto arrivano</h2>
     <div class="big"><span data-k="netto">0</span><small> €</small></div>
-    <p>Pensa al costo dell'azienda come a una pizza intera: nel piatto ne arrivano <b data-f="fette"></b> fette su 10. Le altre se le prendono INPS e IRPEF, più il TFR messo da parte.</p>
+    <p>Questo è il <u data-w="netto">netto</u>. Pensa a quello che spende l'azienda come a una pizza intera: nel piatto ne arrivano <b data-f="fette"></b> fette su 10. Le altre vanno all'<u data-w="inps">INPS</u> e in <u data-w="irpef">IRPEF</u>, più il <u data-w="tfr">TFR</u> messo da parte.</p>
   </section>
 
   <section class="slide o">
     <h2>Dove va tutta la pizza, ogni mese</h2>
     <div class="cmp" id="split"></div>
-    <p class="note">Il TFR resta tuo: è messo da parte e lo ricevi quando lasci il lavoro.</p>
+    <p class="note">Il <u data-w="tfr">TFR</u> resta a chi lavora: è messo da parte e si riceve quando si lascia quel lavoro.</p>
   </section>
 
   <section class="slide y">
-    <span class="chip">Contributi INPS</span>
+    <span class="chip"><u data-w="contributi">Contributi</u> <u data-w="inps">INPS</u></span>
     <h2>Ogni mese vanno all'INPS</h2>
     <div class="big"><span data-k="contr">0</span><small> €</small></div>
-    <p><b data-f="az"></b> li paga l'azienda, <b data-f="tu"></b> te li toglie dalla busta. Non finiscono in un salvadanaio: pagano le pensioni di oggi, e da questi versamenti si calcolerà la tua.</p>
+    <p><b data-f="az"></b> li paga l'azienda, <b data-f="tu"></b> vengono tolti dallo stipendio. Non finiscono in un salvadanaio: pagano le <u data-w="pensione">pensioni</u> di chi oggi è anziano. Da questi versamenti si calcolerà anche la pensione di chi lavora adesso.</p>
   </section>
 
   <section class="slide l">
-    <span class="chip">IRPEF</span>
+    <span class="chip"><u data-w="irpef">IRPEF</u></span>
     <h2>Le tasse sono a scalini</h2>
     <div class="steps" id="steps"></div>
     <p data-f="scal"></p>
   </section>
 
   <section class="slide p">
-    <h2>Di IRPEF paga ogni mese</h2>
+    <h2>Di <u data-w="irpef">IRPEF</u> paga ogni mese</h2>
     <div class="big"><span data-k="irpef">0</span><small> €</small></div>
     <p data-f="irpefTxt"></p>
   </section>
 
   <section class="slide b">
-    <span class="chip">Dove va la sua IRPEF</span>
+    <span class="chip">Dove va la sua <u data-w="irpef">IRPEF</u></span>
     <h2>Ogni mese finanzia</h2>
     <div class="cmp" id="cofog"></div>
-    <p class="note">Le tasse non hanno un'etichetta: è come sarebbero divise seguendo la spesa pubblica 2024 (Eurostat).</p>
+    <p class="note">Le tasse non hanno un'etichetta: è come sarebbero divise se seguissero la <u data-w="spesa">spesa pubblica</u> del 2024 (dati <u data-w="eurostat">Eurostat</u>).</p>
   </section>
 
   <section class="slide o">
     <span class="sticker">⏳</span>
     <h2>Se pagasse tutto per primo, lavorerebbe per INPS e IRPEF fino al</h2>
     <div class="big" style="font-size:clamp(52px,16vw,84px)" data-f="data"></div>
-    <p>Dal giorno dopo, quello che guadagna resta in tasca. E quando spende, paga ancora l'IVA: su una felpa da 30 € ci sono 5,41 €.</p>
+    <p>Dal giorno dopo, quello che guadagna resta in tasca. E quando spende, paga ancora l'<u data-w="iva">IVA</u>: in una felpa da 30 € ci sono 5,41 € di IVA.</p>
   </section>
 
   <section class="slide k" id="last">
@@ -151,6 +165,12 @@ button:focus-visible,input:focus-visible{outline:3px solid #4361ff;outline-offse
     <div class="receipt" id="rc"></div>
     <button class="again" id="again" type="button">Prova un'altra persona</button>
   </section>
+
+  <div class="sheet" id="sheet" role="dialog" aria-labelledby="sh-t" hidden>
+    <h3 id="sh-t"></h3>
+    <p id="sh-p"></p>
+    <button type="button" id="sh-ok">Ho capito</button>
+  </div>
 </main>
 
 <script>
@@ -194,8 +214,30 @@ const WHO = [
   ["🩺","Infermiera","Lavora in ospedale, a turni",2000],
   ["💻","Programmatrice","Sviluppa app per un'azienda",3000]
 ];
+/* Glossario: ogni parola difficile, spiegata in una o due frasi per un ragazzo delle medie.
+   Nel testo: <u data-w="chiave">parola</u>, oppure W("chiave","parola") nelle frasi create in JS. */
+const GLOSS = {
+  lordo: ["Lordo", "Lo stipendio prima di togliere tasse e contributi. È la cifra scritta nel contratto, ma non è quella che arriva sul conto."],
+  netto: ["Netto", "Quello che resta dello stipendio dopo aver tolto tasse e contributi: sono i soldi che arrivano davvero sul conto."],
+  busta: ["Busta paga", "Il foglio che ogni mese spiega quanto si è guadagnato e quanto è stato tolto, voce per voce. Come lo scontrino dello stipendio."],
+  mens: ["Mensilità", "Quante volte all'anno arriva lo stipendio. 13 vuol dire i 12 mesi più la tredicesima: uno stipendio in più a dicembre."],
+  contributi: ["Contributi", "Soldi versati all'INPS per chi lavora. Una parte la paga l'azienda, una parte viene tolta dallo stipendio. Servono per pensioni, malattia e periodi senza lavoro."],
+  inps: ["INPS", "Istituto Nazionale della Previdenza Sociale: l'ente pubblico che incassa i contributi e paga le pensioni e gli aiuti a chi perde il lavoro o si ammala."],
+  pensione: ["Pensione", "I soldi che si ricevono ogni mese quando si smette di lavorare perché si è anziani. È come uno stipendio che arriva dopo il lavoro."],
+  irpef: ["IRPEF", "Imposta sul Reddito delle Persone Fisiche: la tassa principale su quello che si guadagna. Va allo Stato e serve a pagare scuole, ospedali, strade e pensioni."],
+  tfr: ["TFR", "Trattamento di Fine Rapporto: un salvadanaio che l'azienda riempie ogni mese per chi lavora. Si riceve quando si lascia quel lavoro: circa uno stipendio per ogni anno lavorato."],
+  imponibile: ["Reddito imponibile", "La parte di stipendio su cui si calcola l'IRPEF: il lordo dell'anno meno i contributi tolti dallo stipendio."],
+  aliquota: ["Aliquota", "La percentuale di tasse. Un'aliquota del 23% vuol dire 23 € di tasse ogni 100 €."],
+  detrazioni: ["Detrazioni", "Sconti sulle tasse decisi dalla legge. Si tolgono dall'IRPEF da pagare e sono più grandi per chi guadagna meno."],
+  cuneo: ["Taglio del cuneo fiscale", "Il \"cuneo\" è la differenza tra quanto spende l'azienda e quanto arriva a chi lavora. Il taglio è un aiuto dello Stato che lascia qualche euro in più nello stipendio, soprattutto a chi guadagna meno."],
+  spesa: ["Spesa pubblica", "Tutti i soldi che Stato, Regioni e Comuni spendono in un anno: pensioni, ospedali, scuole, strade e tutto il resto."],
+  eurostat: ["Eurostat", "L'ufficio statistico dell'Unione europea. Raccoglie i conti di tutti i Paesi con le stesse regole, così si possono confrontare."],
+  debito: ["Interessi sul debito", "Negli anni lo Stato ha preso soldi in prestito. Come chi ha un mutuo per la casa, ogni anno paga un extra, gli interessi, a chi glieli ha prestati."],
+  iva: ["IVA", "Imposta sul Valore Aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che si compra. Il negozio la incassa e la gira allo Stato."]
+};
+const W = (k,t) => `<u data-w="${k}">${t}</u>`;
 /* Spesa pubblica 2024 per funzione, Eurostat COFOG, punti di PIL (totale 50,4), come nello Scontrino delle tasse */
-const COFOG = [["👵 Nonni in pensione",15.975],["🏥 Ospedali e medici",6.6],["🤝 Aiuti a chi ha bisogno",5.325],["💳 Interessi sul debito",4.0],["🎒 Scuola",4.0],["🏛️ Far funzionare lo Stato",3.7],["🏭 Aiuti alle aziende",2.7],["🚆 Strade, treni e bus",2.4],["🚓 Sicurezza e ambiente",4.4],["🪖 Esercito",1.3]];
+const COFOG = [["👵 Nonni in pensione",15.975],["🏥 Ospedali e medici",6.6],["🤝 Aiuti a chi ha bisogno",5.325],["💳 "+W("debito","Interessi sul debito"),4.0],["🎒 Scuola",4.0],["🏛️ Far funzionare lo Stato",3.7],["🏭 Aiuti alle aziende",2.7],["🚆 Strade, treni e bus",2.4],["🚓 Sicurezza e ambiente",4.4],["🪖 Esercito",1.3]];
 const $ = id => document.getElementById(id);
 const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
 const parse = s => { s = String(s).replace(/[€\s]/g,""); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s.replace(",",".")); return isFinite(n) ? n : 0; };
@@ -215,31 +257,32 @@ function build(name, lordo){
   document.querySelector('[data-k="irpef"]').dataset.n = d.tax;
   set("nome", name); set("lordo", eur(d.lordo)+" €"); set("az", eur(d.az)+" €"); set("tu", eur(d.tu)+" €");
   set("fette", Math.max(1,Math.round(d.netto/d.costo*10)));
-  const sp = [["Netto sul conto",d.netto],["Contributi pagati dall'azienda",d.az],["Contributi tolti dalla busta",d.tu],["IRPEF",d.tax],["TFR messo da parte",d.tfr]];
+  const sp = [[W("netto","Netto")+" sul conto",d.netto],[W("contributi","Contributi")+" pagati dall'azienda",d.az],[W("contributi","Contributi")+" tolti dallo stipendio",d.tu],[W("irpef","IRPEF"),d.tax],[W("tfr","TFR")+" messo da parte",d.tfr]];
   $("split").innerHTML = sp.map(x=>bar(x[0],x[1],d.netto)).join("");
   /* scalini IRPEF 2026 */
   const S = [["23%","fino a 28.000 €",50],["33%","da 28.000 a 50.000 €",75],["43%","oltre 50.000 €",100]];
   const lvl = d.imp > 50000 ? 2 : d.imp > 28000 ? 1 : 0;
   $("steps").innerHTML = S.map((s,i)=>`<div class="${i===lvl?"me":""}" style="height:${s[2]}%">${s[0]}<small>${s[1]}</small></div>`).join("");
-  set("scal", `Il suo reddito imponibile è circa ${eur(d.imp)} € l'anno. Si paga la percentuale più alta solo sulla parte che supera lo scalino, non su tutto: con un aumento non si guadagna mai di meno.`);
+  set("scal", `Ogni scalino ha la sua percentuale, l'${W("aliquota","aliquota")}. I primi 28.000 € dell'anno pagano il 23%, solo i soldi sopra i 28.000 € pagano il 33%, e così via. Per questo con un aumento non si guadagna mai di meno. Il suo ${W("imponibile","reddito imponibile")} è circa ${eur(d.imp)} € l'anno.`);
   set("irpefTxt", d.tax < 30
-    ? "Quasi niente: con un reddito basso detrazioni e taglio del cuneo fiscale abbassano l'IRPEF fino quasi a zero."
-    : `Le aliquote sono più alte, ma detrazioni e taglio del cuneo abbassano il conto. Su ogni 100 € lordi ne vanno in IRPEF circa ${Math.round(d.tax/d.lordo*100)}.`);
+    ? `Quasi niente: per chi guadagna poco ci sono sconti sulle tasse, le ${W("detrazioni","detrazioni")}, e il ${W("cuneo","taglio del cuneo fiscale")}. Insieme portano l'IRPEF quasi a zero.`
+    : `Chi guadagna di più ha percentuali più alte, ma le ${W("detrazioni","detrazioni")} e il ${W("cuneo","taglio del cuneo")} abbassano il conto. Su ogni 100 € ${W("lordo","lordi")} ne vanno in IRPEF circa ${Math.round(d.tax/d.lordo*100)}.`);
   const tot = COFOG.reduce((a,x)=>a+x[1],0), cf = COFOG.map(x=>[x[0], d.tax*x[1]/tot]);
   $("cofog").innerHTML = cf.slice(0,6).map(x=>bar(x[0],x[1],cf[0][1])).join("");
   const share = (d.az + d.tu + d.tax)/d.costo, day = new Date(2026,0,1); day.setDate(day.getDate() + Math.round(share*365) - 1);
   set("data", day.toLocaleDateString("it-IT",{day:"numeric",month:"long"}));
-  const row = (n,v,cl="") => `<div class="row ${cl}"><span class="n">${n}</span><span class="v">${v}</span></div>`;
+  const row = (n,v,cl="") => `<div class="row ${cl}"><span class="n"><span>${n}</span></span><span class="v">${v}</span></div>`;
   $("rc").innerHTML = `<h3>SCONTRINO DELLO STIPENDIO</h3><div class="c">${name} · un mese<br>${eur(d.lordo)} € lordi × 13</div><hr>
     ${row("Costo per l'azienda", eur(d.costo)+" €","t")}
-    ${row("- Contributi azienda", eur(d.az)+" €")}${row("- TFR messo da parte", eur(d.tfr)+" €")}
-    ${row("= Lordo in busta", eur(d.lordo)+" €")}${row("- Contributi tuoi", eur(d.tu)+" €")}
-    ${row("- IRPEF", eur(d.irpef)+" €")}${d.bonus?row("+ Taglio del cuneo", eur(d.bonus)+" €"):""}<hr>
-    ${row("NETTO", eur(d.netto)+" €","t")}<hr>
+    ${row("- "+W("contributi","Contributi")+" azienda", eur(d.az)+" €")}${row("- "+W("tfr","TFR")+" messo da parte", eur(d.tfr)+" €")}
+    ${row("= "+W("lordo","Lordo")+" in busta", eur(d.lordo)+" €")}${row("- "+W("contributi","Contributi")+" suoi", eur(d.tu)+" €")}
+    ${row("- "+W("irpef","IRPEF"), eur(d.irpef)+" €")}${d.bonus?row("+ "+W("cuneo","Taglio del cuneo"), eur(d.bonus)+" €"):""}<hr>
+    ${row(W("netto","NETTO"), eur(d.netto)+" €","t")}<hr>
     <div class="c">LA TUA IRPEF FINISCE IN</div>
     ${cf.map(x=>row(x[0], eur(x[1])+" €")).join("")}
     <div class="bc"></div><div class="c">GRAZIE E ARRIVEDERCI<br>al prossimo mese</div>
-    <div class="src">Regole 2026 per un dipendente senza familiari a carico, senza addizionali regionali e comunali. Contributi azienda: media del 30%. Divisione IRPEF: spesa pubblica 2024 per funzione (Eurostat, COFOG). Per il netto esatto fa fede la busta paga.</div>`;
+    <div class="src">Cosa semplifica: regole 2026 per un dipendente che non mantiene figli o altri familiari. Non conta le piccole tasse in più di Regione e Comune (le addizionali). I contributi dell'azienda sono una media, il 30%. La divisione dell'IRPEF segue la spesa pubblica 2024 per settore (Eurostat). Il netto esatto è quello scritto in busta paga.</div>`;
+  prep();
   go(1);
 }
 
@@ -269,6 +312,31 @@ function go(i){
   const rc = $("rc"); rc.classList.remove("on-in");
   if (i===SL.length-1){ void rc.offsetWidth; rc.classList.add("on-in"); SL[i].scrollTop = 0; }
 }
+/* Spiegazione delle parole: un cartoncino in basso che si apre toccando la parola */
+const sheet = $("sheet");
+let lastWord = null;
+function prep(){
+  document.querySelectorAll("u[data-w]:not([role])").forEach(u=>{
+    u.setAttribute("role","button"); u.tabIndex = 0;
+    u.setAttribute("aria-label", `${u.textContent}: cosa vuol dire`);
+  });
+}
+function explain(u){
+  const g = GLOSS[u.dataset.w]; if (!g) return;
+  lastWord = u;
+  $("sh-t").textContent = g[0]; $("sh-p").textContent = g[1];
+  sheet.hidden = false; $("sh-ok").focus({preventScroll:true});
+}
+function closeSheet(){
+  if (sheet.hidden) return;
+  sheet.hidden = true;
+  if (lastWord && lastWord.closest(".slide.on")) lastWord.focus({preventScroll:true});
+}
+$("ph").addEventListener("click",e=>{
+  const u = e.target.closest("u[data-w]");
+  if (u){ e.stopPropagation(); e.preventDefault(); explain(u); return; }
+  if (!sheet.hidden){ e.stopPropagation(); e.preventDefault(); closeSheet(); }
+}, true);
 $("ph").addEventListener("click",e=>{
   if (cur===0 || cur===SL.length-1) return;
   if (e.target.closest("button,input,form")) return;
@@ -277,10 +345,14 @@ $("ph").addEventListener("click",e=>{
 });
 $("again").addEventListener("click",()=>go(0));
 addEventListener("keydown",e=>{
+  if (!sheet.hidden && (e.key==="Escape" || e.key.startsWith("Arrow"))){ e.preventDefault(); closeSheet(); return; }
+  const u = e.target.closest && e.target.closest("u[data-w]");
+  if (u && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); explain(u); return; }
   if (e.target.tagName==="INPUT" || cur===0) return;
   if (e.key==="ArrowRight") go(cur+1);
   if (e.key==="ArrowLeft") go(cur-1);
 });
+prep();
 go(0);
 }
 </script>

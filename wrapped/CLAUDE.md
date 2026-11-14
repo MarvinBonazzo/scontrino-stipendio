@@ -31,8 +31,16 @@ Se cambiano le regole fiscali, aggiorna prima lo Scontrino delle tasse e poi ric
 | Giorno di "liberazione" | (contributi azienda + tuoi + IRPEF) ÷ costo × 365, contato dal 1° gennaio |
 | Scontrino finale | busta paga riga per riga + dove finisce l'IRPEF |
 
+## Parole spiegate (glossario)
+Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può toccare e apre un cartoncino in basso con la spiegazione.
+- Le spiegazioni sono nell'oggetto `GLOSS` (chiave → [titolo, testo]): una o due frasi, senza altre parole difficili dentro.
+- Nel markup: `<u data-w="chiave">parola</u>`. Nelle frasi create in JS: `W("chiave","parola")`.
+- `prep()` rende le parole toccabili anche da tastiera (Invio). Va richiamata dopo aver creato nuovo testo (già fatto in `build`).
+- Se aggiungi una parola tecnica nuova, aggiungi anche la sua voce in `GLOSS`.
+
 ## Regole di testo
 - Linguaggio per un ragazzo di 12-14 anni, con una metafora o un esempio pratico per ogni concetto.
+- Nessuna sigla o parola tecnica senza spiegazione: o si spiega nella frase, o si rende toccabile con il glossario.
 - Solo informazioni utili, niente curiosità fini a sé stesse. Tono neutro, nessun giudizio politico.
 - Dire sempre cosa semplifica: niente addizionali regionali e comunali, nessun familiare a carico, contributi azienda come media.
 
