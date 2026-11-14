@@ -62,12 +62,13 @@ p{max-width:34ch;text-wrap:pretty}
 .receipt.on-in{animation:print .6s both}
 .receipt h3{text-align:center;font-size:16px;font-weight:700}
 .receipt .c{text-align:center}
-.row{display:flex;gap:8px;align-items:baseline}
-.row .n{flex:1;display:flex;overflow:hidden;white-space:nowrap}
-.row .n>span{flex:none}
-.row .n::after{content:" ......................................";opacity:.35}
+/* Puntini disegnati come sfondo sull'ultima riga: i nomi lunghi vanno a capo invece di essere tagliati (come nel Wrapped dello Stato) */
+.row{display:flex;gap:8px;align-items:flex-end}
+.row .n{flex:1;background:radial-gradient(circle,#2226 1px,#0000 1.5px) 0 calc(100% - 5px)/8px 4px repeat-x}
+.row .n span{background:#fbfaf6;padding-right:6px}
+.row>span:first-child:not(.n){align-self:flex-start}
 .row .v{white-space:nowrap}
-.row.t{font-weight:700;font-size:17px}
+.row.t{font-weight:700;font-size:15px}
 hr{border:0;border-top:2px dashed #2226;margin:12px 0}
 .bc{height:46px;margin:14px auto 6px;width:80%;background:repeating-linear-gradient(90deg,#222 0 2px,#0000 2px 4px,#222 4px 7px,#0000 7px 9px,#222 9px 10px,#0000 10px 13px)}
 .src{font-size:12px;opacity:.7;margin-top:10px}
@@ -270,7 +271,7 @@ const GLOSS = {
 const W = (k,t) => `<u data-w="${k}">${t}</u>`;
 /* Spesa pubblica 2024 per funzione, Eurostat COFOG, in milioni di euro: le stesse 13 voci (e gli stessi nomi)
    del Wrapped dello Stato, con gli stessi numeri dello Scontrino delle tasse e dello Scontrino pubblico. */
-const COFOG = [["🧓 Pensioni",359572],["🏥 Sanità",146075],["🤝 Sussidi e assistenza",108563],["🎒 Scuola",89180],["💳 "+W("interessi","Interessi sul debito"),87789],["🏛️ Funzionamento dello Stato",82625],["🏭 Aiuti alle imprese",60557],["🚆 Trasporti",51824],["🚓 Sicurezza e giustizia",39094],["🪖 Difesa",28301],["♻️ Ambiente",19828],["⚽ Cultura e sport",18774],["💡 Casa e territorio",16973]];
+const COFOG = [["🧓 Pensioni",359572],["🏥 Sanità",146075],["🤝 Sussidi e assistenza",108563],["🎒 Scuola",89180],["💳 "+W("interessi","Interessi sul debito"),87789],["🏛️ Funzionamento dello Stato",82625],["🏭 Aiuti all'economia",60557],["🚆 Trasporti",51824],["🚓 Sicurezza e giustizia",39094],["🪖 Difesa",28301],["♻️ Ambiente",19828],["⚽ Cultura e sport",18774],["💡 Casa e territorio",16973]];
 const SPESA_TOT = COFOG.reduce((a,x)=>a+x[1],0), ENTRATE_TOT = 1036025;   // milioni di euro, 2024
 const $ = id => document.getElementById(id);
 const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
@@ -319,7 +320,7 @@ function build(name, lordo){
     ${row("- "+W("irpef","IRPEF"), eur(d.irpef)+" €")}${d.bonus?row("+ "+W("cuneo","Taglio del cuneo"), eur(d.bonus)+" €"):""}<hr>
     ${row(W("netto","NETTO"), eur(d.netto)+" €","t")}<hr>
     <div class="c">CONTRIBUTI + IRPEF FINISCONO IN</div>
-    ${cf.map(x=>row(x[0], eur(x[1])+" €")).join("")}<hr>
+    ${cf.map(x=>{ const [e,...t] = x[0].split(" "); return `<div class="row"><span>${e}</span><span class="n"><span>${t.join(" ")}</span></span><span class="v">${eur(x[1])} €</span></div>`; }).join("")}<hr>
     ${row("Totale soldi pubblici", eur(d.pub)+" €","t")}
     ${row("+ spesi in più, a "+W("deficit","prestito"), eur(d.extra)+" €")}
     <div class="bc"></div><div class="c">GRAZIE E ARRIVEDERCI<br>al prossimo mese</div>

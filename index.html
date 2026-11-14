@@ -413,7 +413,7 @@ new MutationObserver(prepW).observe(document.body, {childList:true, subtree:true
 const SPESA = [
   {k:"Pensioni", d:"Pensioni di vecchiaia e ai superstiti, cioè a vedove, vedovi e orfani di un pensionato.", t:359572},
   {k:"Sanità", d:"Ospedali, medici di base, visite specialistiche, farmaci e prevenzione.", t:146075},
-  {k:"Altra protezione sociale", d:"Aiuti a chi è malato o invalido, alle famiglie con figli, a chi perde il lavoro e a chi è in povertà.", t:108563},
+  {k:"Sussidi e assistenza", d:"Aiuti a chi è malato o invalido, alle famiglie con figli, a chi perde il lavoro e a chi è in povertà.", t:108563},
   {k:"Istruzione", d:"Scuole dall'infanzia alle superiori, università e servizi come mense e trasporti scolastici.", t:89180},
   {k:"Interessi sul debito", d:`Quello che si paga ogni anno a chi ha prestato soldi allo Stato comprando ${W("btp","titoli come BTP e BOT")}. È il prezzo del ${W("debito","debito")} accumulato negli anni.`, t:87789},
   {k:"Funzionamento dello Stato", d:"Parlamento, governo, ministeri, riscossione delle tasse, rapporti con l'estero e ricerca di base.", t:82625},
@@ -608,7 +608,7 @@ function renderResult(){
   let h = "";
   h += S("Costo totale per l'azienda", d.costo);
   h += V("A", "Contributi INPS dell'azienda", d.inpsAz, "− ",
-    `<b>${n2(lordo)} €</b> lordo × <b>30%</b> = <b class="res">${n2(d.inpsAz)} €</b><small>L'azienda prende il tuo lordo e ne calcola il 30%. Questa cifra la paga lei, <b>in aggiunta</b> al tuo stipendio: a te non viene tolto niente, il tuo lordo resta uguale. Il 30% è un valore medio: cambia un po' in base al settore e a quanti dipendenti ha l'azienda.</small>`,
+    `<b>${n2(lordo)} €</b> lordo × <b>30%</b> = <b class="res">${n2(d.inpsAz)} €</b><small>L'azienda prende il tuo lordo e ne calcola il 30%. Questa cifra la paga l'azienda, <b>in aggiunta</b> al tuo stipendio: a te non viene tolto niente, il tuo lordo resta uguale. Il 30% è un valore medio: cambia un po' in base al settore e a quanti dipendenti ha l'azienda.</small>`,
     `Una somma che l'azienda paga sopra il tuo stipendio e manda direttamente all'${W("inps","INPS")}. In busta paga non la vedi.`,
     `All'INPS, l'ente pubblico della previdenza. Con questi soldi paga <b>oggi</b>: le pensioni di chi ha già smesso di lavorare, la malattia e la maternità di chi è a casa, la disoccupazione (${W("naspi","NASpI")}) di chi ha perso il lavoro, la ${W("cassaint","cassa integrazione")}. Una piccola parte va all'${W("inail","INAIL")}, l'assicurazione per gli infortuni sul lavoro.`,
     `Sì, ma non come un salvadanaio. I soldi non restano fermi a tuo nome: escono subito per pagare le pensioni di oggi. Quello che resta a te è un <b>conteggio</b>: l'INPS segna quanto hai versato, e su quel totale calcolerà la tua pensione. Quando sarà il momento, a pagarla saranno i contributi di chi lavorerà allora. In più, se ti ammali, diventi genitore o perdi il lavoro, è questo sistema che ti paga.`);
