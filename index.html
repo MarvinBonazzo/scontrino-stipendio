@@ -1,438 +1,239 @@
-<!doctype html><html><head><meta charset=utf8><meta name="robots" content="noindex"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Scontrino delle tasse</title>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scontrino dello Stipendio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: tre schermate in sequenza. Inserimento del lordo, calcolo animato come uno scontrino che si stampa, risultato con barra del costo e spiegazione voce per voce */
-:root{
-  --bg:#000000; --paper:#14181b; --field:#0a0d0f; --ink:#e8edf0; --muted:#98a6af; --rule:#2a3137;
-  --accent:#3d7bf0; --accent-ink:#ffffff; --accent-soft:#13264a;
-  --c-azienda:#2f5bd3; --c-tfr:#5b8def; --c-inps:#9cc3ff; --c-irpef:#f4f6f7; --c-add:#ffb36b; --c-netto:#ff8c2e; --c-bonus:#ffb36b;
-  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 56px}
-.wrap{max-width:820px;margin:0 auto}
-.screen{display:flex;flex-direction:column;gap:24px}
-h1{font-family:var(--display);font-weight:800;font-size:clamp(2rem,6.5vw,3.3rem);line-height:1.02;letter-spacing:-.02em;margin:0;text-wrap:balance}
-h2{font-family:var(--display);font-weight:700;font-size:1.45rem;margin:0;text-wrap:balance;line-height:1.2}
-h3{font-family:var(--display);font-weight:700;font-size:1.12rem;margin:0}
-p{margin:0}
-.lede{color:var(--muted);max-width:58ch;font-size:1.08rem}
-.panel{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:20px}
-.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.muted{color:var(--muted)}
-label{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;font-weight:600}
-input[type=number],input[type=text]{width:100%;outline:none;-webkit-appearance:none;appearance:none;font-family:var(--mono);font-size:1rem;padding:10px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--field);color:var(--ink)}
-input:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.hint{font-size:.85rem;color:var(--muted)}
-
-/* Schermata 1 */
-.intro{min-height:70vh;justify-content:center}
-.big-input{position:relative}
-.big-input input{font-size:clamp(2rem,9vw,3.2rem);font-weight:600;padding:14px 64px 14px 18px;border-width:2px;background:var(--field)}
-.big-input .euro{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:1.6rem;color:var(--muted);pointer-events:none}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chips button{font-family:var(--mono);font-size:.88rem;padding:6px 12px;border-radius:999px;border:1px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer}
-.chips button:hover{border-color:var(--accent);color:var(--accent)}
-details{border-top:1px solid var(--rule);padding-top:14px}
-summary{cursor:pointer;color:var(--muted);font-weight:600}
-.opts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.cta{align-self:flex-start;font-family:var(--display);font-weight:700;font-size:1.15rem;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:14px 26px;cursor:pointer}
-.cta:hover{filter:brightness(1.07)}
-.cta:disabled{opacity:.45;cursor:not-allowed}
-.where{font-size:.9rem;color:var(--muted);max-width:60ch}
-
-/* Schermata 2: caricamento */
-.loading{min-height:70vh;justify-content:center;align-items:center;text-align:center}
-.printer{width:min(360px,100%);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:20px;font-family:var(--mono);font-size:.9rem;text-align:left}
-.printer .head{text-align:center;text-transform:uppercase;letter-spacing:.12em;font-weight:600;font-size:.78rem;color:var(--muted);padding-bottom:10px;border-bottom:1px dashed var(--rule);margin-bottom:10px}
-.step{display:grid;grid-template-columns:20px 1fr;gap:8px;padding:5px 0;color:var(--muted);transition:color .3s}
-.step .ic{width:14px;height:14px;border-radius:50%;border:2px solid var(--rule);align-self:center;transition:all .3s}
-.step.run{color:var(--ink)}
-.step.run .ic{border-color:#fff;border-top-color:transparent;animation:spin .7s linear infinite}
-.step.done{color:var(--ink)}
-.step.done .ic{background:#fff;border-color:#fff}
-.ring{position:relative;width:180px;height:180px}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring .track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:6}
-.ring .arc{fill:none;stroke:#fff;stroke-width:6;stroke-linecap:round;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
-.ring .check{position:absolute;inset:0;width:100%;height:100%;transform:none}
-.ring .check path{fill:none;stroke:#fff;stroke-width:7;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:draw .45s ease-out forwards;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
-@keyframes draw{to{stroke-dashoffset:0}}
-.ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-weight:600;font-size:2.2rem;color:#fff;font-variant-numeric:tabular-nums}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* Schermata 3: risultato */
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.back{background:transparent;border:1px solid var(--rule);color:var(--ink);border-radius:999px;padding:7px 14px;font-family:var(--body);font-weight:600;cursor:pointer}
-.back:hover{border-color:var(--accent);color:var(--accent)}
-.hero-num{font-family:var(--display);font-weight:800;font-size:clamp(2.6rem,10vw,4.2rem);line-height:1;letter-spacing:-.02em}
-.barwrap{position:relative;margin-top:2px}
-.bar{display:flex;height:58px;border-radius:6px;overflow:hidden}
-.seg{display:flex;align-items:center;justify-content:center;height:100%;border:0;padding:0;margin:0;cursor:pointer;color:#fff;font-family:var(--mono);font-weight:600;font-size:.82rem;transform-origin:left;animation:grow .7s ease both;transition:filter .15s,opacity .15s;min-width:0;overflow:hidden}
-.seg span{white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.35)}
-.bar.hovering .seg{opacity:.45}
-.bar.hovering .seg.on{opacity:1;filter:brightness(1.08)}
-.seg:focus-visible{outline:3px solid var(--ink);outline-offset:-3px}
-.tip{position:absolute;bottom:calc(100% + 8px);transform:translateX(-50%);background:var(--ink);color:var(--paper);border-radius:8px;padding:7px 11px;font-size:.86rem;white-space:nowrap;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:2}
-.tip b{font-family:var(--mono)}
-.tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--ink)}
-.legend button{background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer}
-.legend button:hover{text-decoration:underline}
-@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
-.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-.summary div{display:flex;flex-direction:column;gap:2px}
-.summary b{font-family:var(--display);font-size:1.7rem;line-height:1.1}
-.summary span{font-size:.86rem;color:var(--muted)}
-@media (max-width:560px){.summary{grid-template-columns:1fr}}
-
-.voci{display:flex;flex-direction:column;gap:0}
-.voce{border-top:1px solid var(--rule)}
-.voce:first-of-type{border-top:0}
-.voce summary{list-style:none;display:grid;grid-template-columns:6px minmax(0,1fr) auto 18px;gap:14px;align-items:center;padding:16px 4px;cursor:pointer;border-radius:6px}
-.voce summary::-webkit-details-marker{display:none}
-.voce summary:hover{background:var(--bg)}
-.voce .stripe{align-self:stretch;border-radius:3px;min-height:26px}
-.voce .ttl{font-family:var(--display);font-weight:700;font-size:1.1rem}
-.voce .amt{font-family:var(--mono);font-weight:600;font-size:1.1rem;font-variant-numeric:tabular-nums}
-.voce .chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
-.voce[open] .chev{transform:rotate(-135deg) translate(-2px,-2px)}
-.voce .body{padding:0 4px 18px 24px;display:flex;flex-direction:column;gap:12px}
-.calc{background:var(--bg);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:.92rem;line-height:1.7;font-variant-numeric:tabular-nums}
-.calc>span{display:block;font-family:var(--body);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:2px}
-.calc b.res{color:var(--vc)}
-.calc small{display:block;font-family:var(--body);font-size:.88rem;color:var(--muted);line-height:1.5;margin-top:6px}
-.voce .kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:6px 12px;font-size:.96rem}
-.voce .kv dt{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding-top:3px}
-.voce .kv dd{margin:0;max-width:62ch}
-@media (max-width:520px){.voce .kv{grid-template-columns:1fr}.voce .kv dd{margin-bottom:6px}.voce .body{padding-left:4px}}
-.subtotal.net span:last-child{color:#5fd46a;font-weight:700;font-size:1.05rem}
-.subtotal{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;margin:2px 0 2px 22px;background:var(--bg);border-radius:6px;font-family:var(--mono);font-size:.9rem;font-variant-numeric:tabular-nums}
-
-.split{display:flex;flex-direction:column;gap:18px;margin-top:10px}
-.srow{display:flex;flex-direction:column;gap:6px}
-.srow .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-.srow .name{font-family:var(--display);font-weight:700;font-size:1.02rem}
-.srow .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
-.srow .v small{color:var(--muted);font-weight:400;margin-left:6px}
-.srow .track{height:10px;background:var(--field);border-radius:5px;overflow:hidden}
-.srow .fill{height:100%;background:var(--c-irpef);border-radius:5px}
-.srow .desc{color:var(--muted);font-size:.88rem}
-
-.notes{font-size:.9rem;color:var(--muted)}
-.notes ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
-.notes a{color:var(--accent)}
-/* Cascata: dal costo azienda al netto */
-.lead-explain{margin-top:10px;font-size:1.08rem;max-width:62ch}
-.lead-explain b{font-family:var(--mono);font-weight:600}
-.cascade{display:flex;flex-direction:column;gap:0}
-.lvl{display:flex;flex-direction:column;gap:6px}
-.lvl .row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
-.lvl .name{font-family:var(--display);font-weight:700;font-size:1.05rem}
-.lvl .val{font-family:var(--mono);font-weight:600;font-size:1.2rem;font-variant-numeric:tabular-nums}
-.lvl .block{height:30px;border-radius:5px;transform-origin:left;animation:grow .7s ease both}
-.lvl p{color:var(--muted);font-size:.93rem;max-width:62ch}
-.drop{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:10px 0 12px 6px;align-items:start}
-.drop .arrow{width:2px;justify-self:center;align-self:stretch;background:var(--rule);position:relative;min-height:34px}
-.drop .arrow::after{content:"";position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--rule);border-bottom:0}
-.drop ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.93rem}
-.drop li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
-.drop li i{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none}
-.drop li b{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
-.drop li span{color:var(--muted)}
-.voce .tag{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:4px;font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--paper);margin-right:8px;vertical-align:2px}
-.voce:target,.voce.flash{background:linear-gradient(90deg,var(--accent-soft),transparent 70%)}
-.extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin-top:10px}
-.extra div{font-size:.92rem}
-.extra b{display:block;font-family:var(--display)}
-@media (max-width:560px){.extra{grid-template-columns:1fr}}
-/* Centratura */
-.screen h1,.screen h2,.lede,.hero-num,.lead-explain,.screen>.panel>h2,.panel>h2,.panel>h3,.panel>.hint,.panel>p.muted,.panel>div>h2,.panel>div>p,.where,.barwrap+.hint{text-align:center;margin-left:auto;margin-right:auto}
-.intro{align-items:center;text-align:center}
-.intro .panel{width:100%;text-align:left}
-.intro .cta{align-self:center}
-.chips{justify-content:center}
-.legend{justify-content:center}
-.summary{text-align:center}
-.topbar{justify-content:center;flex-direction:column}
-.panel h3[style]{text-align:center}
-/* Voce per voce centrata */
-.voce summary{grid-template-columns:1fr;justify-items:center;text-align:center;gap:4px;padding:18px 8px 14px}
-.voce .stripe{width:44px;height:4px;min-height:0;align-self:center;border-radius:2px;margin-bottom:6px}
-.voce .chev{margin-top:6px}
-.voce .body{padding:0 8px 20px;align-items:center;text-align:center}
-.calc{width:100%;text-align:center}
-.voce .kv{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%}
-.voce .kv dt{padding-top:10px}
-.voce .kv dd{max-width:58ch}
-.subtotal{margin:2px auto;justify-content:center;gap:16px;max-width:520px}
-.srow{align-items:center;text-align:center}
-.srow .head{justify-content:center;flex-wrap:wrap}
-.srow .track{width:100%}
-.srow .desc{max-width:52ch}
-.voce .kv{align-items:stretch;max-width:58ch;text-align:left}
-.voce .kv dt{font-size:.86rem;letter-spacing:.05em;color:var(--ink);padding-top:12px}
-.voce .kv dd{max-width:none}
-.srow .head{flex-direction:column;align-items:center;gap:2px}
-.voce .kv dt{font-size:1.08rem;font-family:var(--display);font-weight:700;letter-spacing:0;text-transform:none;padding-top:14px}
-.voce summary{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px 10px}
-.voce .stripe{width:10px;height:10px;border-radius:2px;margin:0;align-self:center}
-.voce .ttl::after{content:":"}
-.voce .chev{margin:0 0 3px 6px}
-.calc{font-size:.8rem;line-height:1.6;padding:10px 12px}
-.calc small{font-size:.78rem}
-.srow .line{display:flex;align-items:center;justify-content:center;gap:10px}
-.srow .line .track{width:min(120px,30vw);height:6px;flex:none}
-/* Colonna unica per le cifre, come uno scontrino */
-.voci{max-width:620px;margin:0 auto;width:100%}
-.voce summary{display:grid;grid-template-columns:10px minmax(0,1fr) auto 18px;justify-items:start;text-align:left;gap:12px;padding:16px 10px}
-.voce .ttl::after{content:none}
-.voce .amt{justify-self:end;text-align:right;min-width:110px}
-.voce .chev{justify-self:center;margin:0 0 3px}
-.subtotal{display:grid;grid-template-columns:10px minmax(0,1fr) auto 18px;gap:12px;max-width:none;margin:2px 0;padding:10px;justify-content:stretch;border-radius:6px}
-.subtotal span:first-child{grid-column:2}
-.subtotal span:last-child{grid-column:3;justify-self:end;text-align:right;min-width:110px}
-/* Dove vanno: piu grande */
-.split{gap:26px;margin-top:16px}
-.srow .name{font-size:1.3rem}
-.srow .v{font-size:1.2rem}
-.srow .v small{font-size:.9rem}
-.srow .line .track{width:min(170px,34vw);height:8px}
-.srow .desc{font-size:1rem;max-width:56ch}
-/* Dove vanno: stesso stile di Voce per voce */
-.split{display:block;max-width:620px;margin:10px auto 0;width:100%}
-.srow2 summary{grid-template-columns:10px minmax(0,1fr) auto auto 18px}
-.srow2 .pc{font-family:var(--mono);font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums;justify-self:end;min-width:52px;text-align:right}
-.srow2 .amt{color:var(--ink)}
-.srow2 .body{align-items:stretch;text-align:left;padding:0 10px 18px 32px;gap:10px}
-.sbar{height:8px;background:var(--field);border-radius:4px;overflow:hidden}
-.sbar .fill{height:100%;background:var(--c-irpef);border-radius:4px}
-.sdesc{color:var(--muted);font-size:.98rem;max-width:58ch}
-.split .subtotal{grid-template-columns:10px minmax(0,1fr) auto 18px}
-.srow2 .ttl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
-.mbar{display:inline-block;width:70px;height:6px;background:var(--field);border-radius:3px;overflow:hidden;flex:none}
-.mbar span{display:block;height:100%;background:var(--c-irpef);border-radius:3px}
-.srow2 .pc{font-size:.74rem;min-width:0;white-space:nowrap}
-@media (max-width:520px){.srow2 summary{grid-template-columns:10px minmax(0,1fr) auto 18px}.srow2 .pc{grid-column:2;grid-row:2;justify-self:start}}
-/* Voce per voce: corpo come in Dove vanno */
-#voci .voce .body{align-items:stretch;text-align:left;padding:0 10px 18px 32px;gap:10px}
-#voci .calc{text-align:left}
-#voci .voce .kv{align-items:stretch;max-width:58ch;margin:0;text-align:left;gap:2px}
-#voci .voce .kv dt{font-size:1rem;padding-top:10px}
-#voci .voce .kv dd{color:var(--muted);font-size:.98rem}
-/* Nel carattere monospaziato lo spazio e largo quanto una cifra: lo stringo tra numero ed euro */
-.amt,.subtotal,.pc,.tip b,.legend .mono,.srow .v,#taxTot,.calc b{word-spacing:-.3em}
-.hero-num{word-spacing:.04em}
-.seg{margin-right:-1px}.seg:last-child{margin-right:0}
-.big-input input::placeholder{color:var(--muted);opacity:.6}
-.big-input input:focus{border-color:var(--accent)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
-/* Spiegazioni numerate: perché anche i contributi, il debito, le tasse che non vedi */
-.facts{max-width:600px;margin:16px auto 0;display:flex;flex-direction:column;gap:16px}
-.fact{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start}
-.fact .n{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1;color:var(--c-netto);text-align:center;padding-top:2px}
-.fact h3{text-align:left!important;margin:0 0 4px!important}
-.fact p{color:var(--muted);font-size:.98rem}
-.fact p b{color:var(--ink);font-family:var(--mono);font-weight:600;word-spacing:-.3em}
-.fact a,.lede a{color:var(--accent)}
-.more{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
-.ghost{display:inline-block;text-decoration:none;font-family:var(--display);font-weight:700;font-size:1.05rem;background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:10px;padding:13px 22px}
-.ghost:hover{border-color:var(--accent);color:var(--accent)}
-
-/* Parole spiegate: si toccano e si apre un cartoncino in basso */
-u[data-w]{text-decoration:underline dotted;text-decoration-color:var(--muted);text-underline-offset:3px;text-decoration-thickness:1.5px;cursor:help;border-radius:3px}
-u[data-w]:hover,u[data-w]:focus-visible{color:var(--accent);text-decoration-color:var(--accent);outline:none}
-.gl{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:max(16px, env(safe-area-inset-bottom, 0px));width:min(480px, calc(100% - 32px));background:var(--ink);color:var(--paper);border-radius:12px;padding:16px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,.6);display:grid;gap:6px;text-align:left}
-.gl b{font-family:var(--display);font-size:1.15rem}
-.gl p{font-size:1rem;line-height:1.45}
-.gl button{justify-self:end;font-family:var(--body);font-weight:600;background:var(--paper);color:var(--ink);border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
+/* VOICE: giocoso e diretto, come le storie di Instagram; spiega senza giudicare
+   IDEA: uno stipendio raccontato a storie, che finisce con la busta paga stampata come scontrino
+   PICTURE: numeri giganti su campi di colore pieni, barre di confronto, scalini IRPEF, scontrino finale
+   COLOUR and TYPE: giallo, rosa, blu elettrico, arancio, lilla; Archivo 900 + Space Mono per lo scontrino
+   LAYOUT: storia verticale a schermo intero sul telefono, cornice da telefono su desktop */
+:root{color-scheme:light dark;--out:light-dark(#e9e6df,#0d0d0f);--ink:#111}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;margin:0}
+body{background:var(--out);font:500 17px/1.45 Archivo,system-ui,sans-serif;color:var(--ink);overflow:hidden;height:100dvh;display:grid;place-items:center}
+.phone{position:relative;width:min(440px,100vw);height:min(880px,100dvh);overflow:hidden;border-radius:clamp(0px,(100vw - 480px)*999,28px);box-shadow:0 30px 80px #0005}
+.bars{position:absolute;z-index:5;top:12px;left:12px;right:12px;display:flex;gap:4px}
+.bars i{flex:1;height:4px;border-radius:2px;background:#1113}
+.bars i b{display:block;height:100%;width:0;border-radius:2px;background:#111;transition:width .3s}
+.bars i.done b{width:100%}
+.slide{position:absolute;inset:0;padding:64px 28px 40px;display:flex;flex-direction:column;justify-content:center;gap:18px;opacity:0;pointer-events:none;transform:scale(1.04);transition:opacity .35s,transform .35s}
+.slide.on{opacity:1;pointer-events:auto;transform:none}
+h1,h2{font-weight:900;line-height:1.02;letter-spacing:-.02em;text-wrap:balance}
+h1{font-size:clamp(40px,11vw,52px)}
+h2{font-size:clamp(28px,8vw,36px)}
+.big{font-weight:900;font-size:clamp(64px,22vw,112px);line-height:.9;letter-spacing:-.04em;white-space:nowrap}
+.big small{font-size:.4em;letter-spacing:0}
+p{max-width:34ch;text-wrap:pretty}
+.sticker{font-size:80px;line-height:1;display:inline-block;transform:rotate(-8deg);filter:drop-shadow(4px 6px 0 #0002)}
+.chip{align-self:flex-start;background:#111;color:#fff;font-weight:700;font-size:14px;padding:6px 12px;border-radius:99px}
+.hint{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:14px;font-weight:700;opacity:.6}
+.y{background:#ffd60a}.p{background:#ff5c9a}.b{background:#4361ff;color:#fff}.o{background:#ff7a1a}.l{background:#b9a3ff}.k{background:#111;color:#fff}
+.b .chip,.k .chip{background:#fff;color:#111}
+.who{display:grid;gap:10px}
+.who button{display:flex;align-items:center;gap:14px;text-align:left;background:#fff;color:#111;border:3px solid #111;border-radius:18px;padding:10px 16px;min-height:64px;font:700 17px Archivo,sans-serif;cursor:pointer;box-shadow:4px 4px 0 #111;transition:transform .1s}
+.who button:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #111}
+.who button span:first-child{font-size:30px}
+.who small{display:block;font-weight:500;font-size:14px;opacity:.7}
+.own{display:flex;gap:8px}
+.own label{flex:1;display:flex;align-items:center;background:#fff;border:3px solid #111;border-radius:18px;padding:0 14px;font-weight:700}
+.own input{flex:1;border:0;outline:0;font:700 18px Archivo,sans-serif;min-height:52px;background:none;width:100%;color:#111}
+.own button{border:3px solid #111;border-radius:18px;background:#111;color:#fff;font:700 16px Archivo,sans-serif;padding:0 18px;cursor:pointer}
+.own button:disabled{opacity:.35;cursor:default}
+.note{font-size:14px;opacity:.75}
+.cmp{display:grid;gap:12px;width:100%}
+.cmp div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-weight:700;font-size:15px}
+.cmp div i{grid-column:1/-1;height:14px;border-radius:7px;background:#1111}
+.b .cmp div i{background:#fff3}
+.cmp div i b{display:block;height:100%;border-radius:7px;background:currentColor;width:0;transition:width .7s .15s}
+.on .cmp div i b{width:var(--w)}
+.cmp em{font-style:normal;white-space:nowrap}
+.steps{display:flex;align-items:flex-end;gap:6px;height:150px}
+.steps div{flex:1;background:#111;color:#fff;border-radius:10px 10px 0 0;padding:8px;font-weight:900;font-size:22px;display:flex;flex-direction:column;justify-content:space-between}
+.steps div small{font-weight:700;font-size:12px;opacity:.8}
+.steps div.me{outline:4px solid #fff;outline-offset:-4px}
+.k{justify-content:flex-start;overflow-y:auto;padding-top:56px}
+.receipt{background:#fbfaf6;color:#222;font:400 14px/1.5 "Space Mono",monospace;padding:22px 18px 28px;
+  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/16px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/16px 100%}
+.receipt.on-in{animation:print .6s both}
+.receipt h3{text-align:center;font-size:16px;font-weight:700}
+.receipt .c{text-align:center}
+/* Puntini disegnati come sfondo sull'ultima riga: i nomi lunghi vanno a capo invece di essere tagliati (come nello Scontrino dello Stato) */
+.row{display:flex;gap:8px;align-items:flex-end}
+.row .n{flex:1;background:radial-gradient(circle,#2226 1px,#0000 1.5px) 0 calc(100% - 5px)/8px 4px repeat-x}
+.row .n span{background:#fbfaf6;padding-right:6px}
+.row>span:first-child:not(.n){align-self:flex-start}
+.row .v{white-space:nowrap}
+.row.t{font-weight:700;font-size:15px}
+hr{border:0;border-top:2px dashed #2226;margin:12px 0}
+.bc{height:46px;margin:14px auto 6px;width:80%;background:repeating-linear-gradient(90deg,#222 0 2px,#0000 2px 4px,#222 4px 7px,#0000 7px 9px,#222 9px 10px,#0000 10px 13px)}
+.src{font-size:12px;opacity:.7;margin-top:10px}
+.again{font:700 16px Archivo,sans-serif;min-height:48px;padding:0 22px;border-radius:99px;border:0;background:#ffd60a;color:#111;cursor:pointer;margin-top:18px;align-self:center}
+.again.link{display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;background:#fff;margin-top:0;padding:10px 22px;line-height:1.25}
+u{text-decoration:underline dotted 2px;text-underline-offset:3px}
+u[data-w]{cursor:pointer;border-radius:4px}
+u[data-w]:hover{background:#fff4}
+.tip{font-size:14px;font-weight:700}
+.hint{bottom:14px;padding:0 24px}
+.sheet{position:absolute;z-index:10;left:12px;right:12px;bottom:12px;background:#fff;color:#111;border:3px solid #111;border-radius:20px;box-shadow:4px 4px 0 #111;padding:18px 18px 16px;display:grid;gap:8px;animation:up .2s both}
+.sheet[hidden]{display:none}
+.sheet h3{font-weight:900;font-size:22px;line-height:1.1}
+.sheet p{max-width:none;font-size:16px}
+.sheet button{justify-self:start;font:700 15px Archivo,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:99px;background:#111;color:#fff;cursor:pointer}
+/* Bottoni finali: le due pagine complete e il pannello con fonti, calcoli e numeri interi */
+.ends{display:grid;gap:10px;width:100%;margin-top:14px}
+.ends .link{margin:0;width:100%;display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;font:700 16px Archivo,sans-serif;min-height:48px;padding:10px 22px;line-height:1.25;border-radius:99px;border:0;background:#fff;color:#111;cursor:pointer}
+.ends .link.src{background:transparent;color:#fff;border:2px solid #fff}
+.ends .link:focus-visible{outline:3px solid #ffd60a;outline-offset:3px}
+/* Pannello fonti e calcoli: copre il telefono e scorre */
+.info{position:absolute;inset:0;z-index:20;background:#fbfaf6;color:#111;overflow-y:auto;padding:0 20px 32px;font-size:15px;line-height:1.45}
+.info[hidden]{display:none}
+.info-top{position:sticky;top:0;z-index:1;background:#fbfaf6;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 0 10px;border-bottom:2px solid #111}
+.info h3{font-weight:900;font-size:22px;line-height:1.1}
+.info h4{font-weight:900;font-size:17px;margin:20px 0 6px}
+.info p{max-width:none;margin:6px 0}
+.info small{display:block;font-size:13px;opacity:.7;margin-top:4px}
+.info table{width:100%;border-collapse:collapse;font:400 12.5px/1.4 "Space Mono",monospace;margin-top:6px}
+.info td{padding:5px 0;border-bottom:1px dashed #2223;vertical-align:top}
+.info td:last-child{text-align:right;white-space:nowrap;padding-left:10px}
+.info tr.tot td{font-weight:700;border-bottom:0;border-top:2px solid #111}
+.info .f{font:400 12.5px/1.55 "Space Mono",monospace;background:#efece4;border-radius:8px;padding:8px 10px;margin:6px 0}
+.info ul{margin:6px 0 0;padding-left:18px;display:grid;gap:6px}
+.info a{color:#3048d6}
+.info .x{margin:0;flex:none;width:40px;min-height:40px;padding:0;border:0;border-radius:99px;background:#111;color:#fff;font:700 16px Archivo,sans-serif;cursor:pointer}
+@keyframes up{from{transform:translateY(20px);opacity:0}}
+button:focus-visible,input:focus-visible,u[data-w]:focus-visible{outline:3px solid #4361ff;outline-offset:3px}
+@keyframes print{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0)}}
+@media (prefers-reduced-motion:reduce){.slide,.bars b,.cmp div i b{transition:none}.receipt.on-in{animation:none}}
 </style>
+</head>
+<body>
+<main class="phone" id="ph" aria-live="polite">
+  <div class="bars" id="bars"></div>
 
-<div class="wrap">
+  <section class="slide y" id="pick">
+    <span class="chip">Busta paga · 2026</span>
+    <h1>Scontrino dello Stipendio</h1>
+    <p>Scegli un lavoro, o scrivi il tuo stipendio, e scopri dove finiscono i tuoi soldi.</p>
+    <div class="who" id="who"></div>
+    <form class="own" id="own">
+      <label>€ <input id="lordo" inputmode="numeric" placeholder="Il tuo lordo mensile" aria-label="Il tuo lordo mensile"></label>
+      <button id="go" disabled>Vai</button>
+    </form>
+    <p class="note">Stipendi di esempio: cifre <u data-w="lordo">lorde</u> al mese, per 13 <u data-w="mens">mensilità</u>.</p>
+    <p class="tip">👆 Le parole <u>sottolineate</u> si possono toccare: ti spiegano cosa vogliono dire.</p>
+  </section>
 
-  <!-- 1. Inserimento -->
-  <section class="screen intro" id="s-intro">
-    <h1>Cosa paghi davvero con il tuo stipendio?</h1>
-    <p class="lede">Scrivi il tuo stipendio <u data-w="lordo">lordo</u>: vedi quanto va all'<u data-w="inps">INPS</u> e allo Stato, quanto resta a te, e cosa si paga con i tuoi soldi.</p>
-    <div class="panel screen" style="gap:16px">
-      <div>
-        <label for="lordo">Stipendio lordo mensile</label>
-        <div class="big-input">
-          <input id="lordo" type="text" placeholder="2300" inputmode="decimal" autocomplete="off">
-          <span class="euro">€</span>
-        </div>
-      </div>
-      <details>
-        <summary>Opzioni (mensilità)</summary>
-        <div class="opts">
-          <div>
-            <label for="mens">Mensilità</label>
-            <input id="mens" type="number" min="12" max="14" step="1" value="13">
-          </div>
-        </div>
-        <p class="hint" style="margin-top:8px">13 se hai la tredicesima, 14 se hai anche la quattordicesima.</p>
-      </details>
-      <button class="cta" id="go" type="button" disabled>Calcola</button>
+  <section class="slide p">
+    <span class="chip" data-f="nome"></span>
+    <h2>Per il tuo lavoro l'azienda spende ogni mese</h2>
+    <div class="big"><span data-k="costo">0</span><small> €</small></div>
+    <p>Ma nella tua <u data-w="busta">busta paga</u> c'è scritto <b data-f="lordo"></b> <u data-w="lordo">lordi</u>. La differenza sono i <u data-w="contributi">contributi</u> e il <u data-w="tfr">TFR</u>: soldi che l'azienda paga in più, oltre allo stipendio.</p>
+    <span class="hint">Tocca a destra per andare avanti, a sinistra per tornare indietro</span>
+  </section>
+
+  <section class="slide b">
+    <span class="sticker">🍕</span>
+    <h2>Sul conto arrivano</h2>
+    <div class="big"><span data-k="netto">0</span><small> €</small></div>
+    <p>Questo è il tuo <u data-w="netto">netto</u>. Pensa a quello che spende l'azienda come a una pizza: a te ne arrivano <b data-f="fette"></b> fette su 10. Le altre vanno all'<u data-w="inps">INPS</u> e in <u data-w="irpef">IRPEF</u>, più il <u data-w="tfr">TFR</u> messo da parte.</p>
+  </section>
+
+  <section class="slide o">
+    <h2>Dove vanno i tuoi soldi, ogni mese</h2>
+    <div class="cmp" id="split"></div>
+    <p class="note">Il <u data-w="tfr">TFR</u> resta tuo: è messo da parte e lo ricevi quando lasci quel lavoro.</p>
+  </section>
+
+  <section class="slide y">
+    <span class="chip"><u data-w="contributi">Contributi</u> <u data-w="inps">INPS</u></span>
+    <h2>Ogni mese vanno all'INPS</h2>
+    <div class="big"><span data-k="contr">0</span><small> €</small></div>
+    <p><b data-f="az"></b> li paga l'azienda, <b data-f="tu"></b> te li tolgono dallo stipendio. Non finiscono in un salvadanaio: pagano le <u data-w="pensione">pensioni</u> di chi oggi è anziano. Su questi versamenti si calcolerà anche la tua pensione.</p>
+  </section>
+
+  <section class="slide l">
+    <span class="chip"><u data-w="irpef">IRPEF</u></span>
+    <h2>Le tasse sono a scalini</h2>
+    <div class="steps" id="steps"></div>
+    <p data-f="scal"></p>
+  </section>
+
+  <section class="slide p">
+    <h2>Di <u data-w="irpef">IRPEF</u> paghi ogni mese</h2>
+    <div class="big"><span data-k="irpef">0</span><small> €</small></div>
+    <p data-f="irpefTxt"></p>
+  </section>
+
+  <section class="slide b">
+    <span class="chip"><u data-w="contributi">Contributi</u> + <u data-w="irpef">IRPEF</u> = <span data-f="pub"></span> al mese</span>
+    <h2>Ecco cosa pagano i tuoi soldi</h2>
+    <div class="cmp" id="cofog"></div>
+    <p class="note">I soldi non hanno un'etichetta: è come sarebbero divisi se seguissero la <u data-w="spesa">spesa pubblica</u> del 2024 (dati <u data-w="eurostat">Eurostat</u>). Le prime 6 voci su 13: le altre sono nello scontrino finale.</p>
+  </section>
+
+  <section class="slide y">
+    <span class="chip">Da sapere</span>
+    <span class="sticker">🧓</span>
+    <h2>Perché contiamo anche i contributi?</h2>
+    <p>I <u data-w="contributi">contributi</u> vanno all'<u data-w="inps">INPS</u> per le pensioni. Ma non bastano: il resto lo mette lo Stato con le altre tasse. Alla fine è una cassa sola.</p>
+    <div class="cmp"><div><span>Pensioni pagate nel 2024</span><em>360 miliardi</em><i><b style="--w:100.0%"></b></i></div><div><span>Contributi incassati nel 2024</span><em>278 miliardi</em><i><b style="--w:77.4%"></b></i></div></div>
+  </section>
+
+  <section class="slide p">
+    <span class="chip">Plot twist</span>
+    <span class="sticker">💳</span>
+    <h2>Lo Stato spende più di quanto incassa</h2>
+    <div class="big"><span data-k="extra">0</span><small> €</small></div>
+    <p>al mese in più sui tuoi soldi, presi in prestito. Nel 2024 lo Stato ha speso 107&nbsp;€ ogni 100 incassati: è il <u data-w="deficit">deficit</u>. Lo copre vendendo <u data-w="btp">BTP e BOT</u>, come pagare con la carta di credito. Tutti i prestiti degli anni passati fanno il <u data-w="debito">debito pubblico</u>: circa 50.343&nbsp;€ a testa.</p>
+  </section>
+
+  <section class="slide o">
+    <span class="sticker">⏳</span>
+    <h2>Se pagassi tutto per primo, lavoreresti per INPS e IRPEF fino al</h2>
+    <div class="big" style="font-size:clamp(52px,16vw,84px)" data-f="data"></div>
+    <p>Dal giorno dopo, quello che guadagni resta a te. Ma non è finita: quando lo spendi, paghi altre tasse.</p>
+  </section>
+
+  <section class="slide l">
+    <span class="chip">Le tasse che non si vedono</span>
+    <span class="sticker">🛍️</span>
+    <h2>Quando spendi, paghi ancora</h2>
+    <div class="cmp"><div><span><u data-w="iva">IVA</u></span><em>6,75 €</em><i><b style="--w:100.0%"></b></i></div><div><span><u data-w="accise">Accise</u> e imposte sui consumi</span><em>4,60 €</em><i><b style="--w:68.1%"></b></i></div></div>
+    <p class="note">Euro al giorno, in media per ogni persona che vive in Italia, bambini compresi.</p>
+    <p>L'IVA è già nel prezzo: in una felpa da 30 € ci sono 5,41&nbsp;€. Le accise sono nella benzina, nelle bollette, nelle sigarette. E ci sono le <u data-w="addizionale">addizionali</u> di Regione e Comune, che cambiano da posto a posto: qui non le contiamo.</p>
+  </section>
+
+  <section class="slide k" id="last">
+    <span class="chip">La busta paga, come scontrino</span>
+    <div class="receipt" id="rc"></div>
+    <button class="again" id="again" type="button">Prova un altro lavoro</button>
+    <div class="ends">
+      <a class="link" href="https://marvinbonazzo.github.io/scontrino-stipendio/">Scontrino dello Stipendio</a>
+      <a class="link" href="https://marvinbonazzo.github.io/scontrino-pubblico/">Scontrino dello Stato</a>
+      <button class="link src" id="info-open" type="button">Fonti, calcoli e numeri interi</button>
     </div>
   </section>
 
-  <!-- 2. Caricamento -->
-  <section class="screen loading" id="s-load" hidden aria-live="polite">
-    <h2>Sto facendo i conti</h2>
-    <div class="printer">
-      <div class="head">Scontrino in stampa</div>
-      <div id="steps"></div>
-    </div>
-    <div class="ring" aria-hidden="true">
-      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="44"/><circle class="arc" id="arc" cx="50" cy="50" r="44" stroke-dasharray="276.46" stroke-dashoffset="276.46"/></svg>
-      <div class="pct" id="pct">0%</div>
-      <svg class="check" id="check" viewBox="0 0 100 100" hidden><path d="M31 52 L45 66 L71 38"/></svg>
-    </div>
-  </section>
+  <div class="info" id="info" hidden role="dialog" aria-labelledby="info-t">
+    <div class="info-top"><h3 id="info-t">Fonti, calcoli e numeri interi</h3><button class="x" id="info-x" type="button" aria-label="Chiudi">✕</button></div>
+    <div id="info-body"></div>
+  </div>
 
-  <!-- 3. Risultato -->
-  <section class="screen" id="s-res" hidden>
-    <div class="topbar">
-      <span class="muted">Lordo mensile <b class="mono" id="r-lordo" style="color:var(--ink)"></b></span>
-      <button class="back" id="again" type="button">Cambia stipendio</button>
-    </div>
-
-    <div class="panel screen" style="gap:16px">
-      <div>
-        <h2>Quanto costa il tuo lavoro ogni mese</h2>
-        <p class="hero-num mono" id="r-costo"></p>
-        <p class="lead-explain" id="r-explain"></p>
-      </div>
-      <h3 style="margin-top:6px">Ogni euro, in una barra</h3>
-      <div class="barwrap"><div class="tip" id="tip" hidden></div><div class="bar" id="bar" role="group" aria-label="Ripartizione del costo del lavoro"></div></div>
-      <div class="legend" id="legend"></div>
-      <div class="summary">
-        <div><b id="s-netto" style="color:var(--c-netto)"></b><span>arrivano sul tuo conto</span></div>
-        <div><b id="s-inps" style="color:var(--c-inps)"></b><span>vanno all'INPS</span></div>
-        <div><b id="s-tax" style="color:var(--c-irpef)"></b><span>sono IRPEF</span></div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <h2>Dove vanno i <span class="mono" id="taxTot"></span> che il tuo lavoro dà al settore pubblico</h2>
-      <p class="hint" style="margin-top:6px" id="split-hint"></p>
-      <div class="split" id="split"></div>
-      <div class="facts" id="split-facts"></div>
-    </div>
-
-    <div class="panel">
-      <h2 style="margin-bottom:6px">Voce per voce</h2>
-      <div class="voci" id="voci"></div>
-    </div>
-
-    <div class="panel">
-      <h2>Le tasse che questo scontrino non conta</h2>
-      <p class="hint" style="margin-top:6px">Lo scontrino segue il tuo stipendio fino al <u data-w="netto">netto</u>. Ma paghi tasse anche dopo, quando lo spendi. Non le calcoliamo per te, perché dipendono da cosa compri e da dove vivi.</p>
-      <div class="facts" id="hidden-tax"></div>
-    </div>
-
-    <div class="panel more">
-      <h2>Hai visto la tua parte. E il totale?</h2>
-      <p class="hint">Lo Scontrino pubblico mostra quanti soldi arrivano in tutto allo Stato, da dove, come vengono spesi e perché non bastano. Per l'Italia e per ognuno dei circa 7.900 Comuni.</p>
-      <a class="ghost" href="https://marvinbonazzo.github.io/scontrino-pubblico/">Apri lo Scontrino pubblico →</a>
-    </div>
-
-
-  </section>
-</div>
-
-<div class="gl" id="gl" hidden role="dialog" aria-live="polite" aria-labelledby="gl-t"><b id="gl-t"></b><p id="gl-p"></p><button type="button" id="gl-x">Ho capito</button></div>
+  <div class="sheet" id="sheet" role="dialog" aria-labelledby="sh-t" hidden>
+    <h3 id="sh-t"></h3>
+    <p id="sh-p"></p>
+    <button type="button" id="sh-ok">Ho capito</button>
+  </div>
+</main>
 
 <script>
-const AZ_RATE = 0.30, INPS_RATE = 0.0919, INPS_FASCIA = 56224;
-const $ = id => document.getElementById(id);
-const fmt = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"}) + " €";
-
-/* Parole spiegate. Chiave → [titolo, spiegazione in una o due frasi, senza altre parole difficili].
-   Le voci in comune sono identiche a quelle dello Scontrino pubblico: se cambi una spiegazione, cambiala in tutti e due. */
-const GLOSS = {
-  inps:["INPS","L'ente pubblico che incassa i contributi di chi lavora e paga pensioni, malattia, maternità e gli aiuti a chi perde il lavoro."],
-  contributi:["Contributi","Soldi versati all'INPS per ogni persona che lavora: una parte la paga l'azienda, una parte viene tolta dallo stipendio. Pagano le pensioni di oggi."],
-  irpef:["IRPEF","Imposta sul reddito delle persone: la tassa su quello che guadagni lavorando o con la pensione. A un dipendente viene tolta ogni mese dalla busta paga."],
-  iva:["IVA","Imposta sul valore aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che compri. In una felpa da 30 € con IVA al 22%, 5,41 € vanno allo Stato."],
-  accise:["Accise","Una tassa fissa su ogni litro o chilo di certi prodotti: benzina, gasolio, luce, gas, sigarette, alcolici. Non è una percentuale: resta uguale anche se il prezzo cambia."],
-  imu:["IMU","Imposta su case, negozi e terreni, che va al Comune. Non si paga sulla casa dove si abita, tranne le case di lusso."],
-  tari:["TARI","La tassa sui rifiuti. La paga chi abita o lavora in un edificio, e serve a pagare raccolta e smaltimento."],
-  addizionale:["Addizionale IRPEF","Un piccolo pezzo di IRPEF in più che va alla Regione e al Comune dove vivi. La percentuale la decidono loro, entro i limiti della legge."],
-  lordo:["Lordo","Lo stipendio prima delle trattenute. È la cifra del contratto, ma non è quella che arriva sul conto."],
-  netto:["Netto","Quello che arriva davvero sul conto, dopo aver tolto contributi e tasse."],
-  deficit:["Deficit","Quando in un anno si spende più di quanto entra. La differenza si copre con nuovi prestiti, che fanno crescere il debito."],
-  debito:["Debito pubblico","Tutti i soldi che lo Stato ha preso in prestito negli anni e non ha ancora restituito. Ogni anno ci si pagano sopra gli interessi."],
-  btp:["BTP e BOT","Titoli di Stato: dei «pagherò» che lo Stato vende per farsi prestare soldi. Chi li compra presta soldi allo Stato e li riavrà indietro con gli interessi."],
-  interessi:["Interessi","Il prezzo di un prestito. Chi riceve soldi in prestito restituisce più di quanto ha avuto: la differenza sono gli interessi."],
-  naspi:["NASpI","L'assegno mensile che l'INPS paga per un periodo a chi perde il lavoro senza averlo scelto."],
-  cassaint:["Cassa integrazione","Quando un'azienda è in crisi e riduce il lavoro, l'INPS paga ai dipendenti una parte dello stipendio."],
-  residenti:["Residenti","Le persone iscritte all'anagrafe di un Comune, cioè che ci vivono ufficialmente. Contano anche bambini e anziani."],
-  eurostat:["Eurostat","L'ufficio statistico dell'Unione europea. Raccoglie i conti pubblici di tutti i Paesi UE con le stesse regole, così si possono confrontare."],
-  inail:["INAIL","L'assicurazione pubblica contro gli infortuni sul lavoro e le malattie causate dal lavoro."],
-  tfr:["TFR","Trattamento di fine rapporto: circa uno stipendio all'anno che l'azienda mette da parte e ti dà quando lasci quel lavoro."],
-  imponibile:["Imponibile","La parte di reddito su cui si calcola una tassa. Per l'IRPEF di un dipendente è il lordo meno i contributi."],
-  scaglioni:["Scaglioni","Gradini di reddito, ognuno con la sua percentuale di tassa. Ogni percentuale vale solo per la parte di reddito dentro quel gradino, non per tutto."],
-  detrazioni:["Detrazioni","Uno sconto sulla tassa già calcolata. Per chi lavora come dipendente è più alto se guadagna poco."],
-  cuneo:["Cuneo fiscale","La distanza tra quanto costa un lavoratore all'azienda e quanto lui riceve netto. Il «taglio del cuneo» è uno sconto dello Stato che riduce questa distanza."],
-  integrativo:["Trattamento integrativo","Un bonus fino a 1.200 € l'anno in busta paga per chi guadagna meno di 15.000 €."]
-};
-const W = (k, t) => `<u data-w="${k}">${t || GLOSS[k][0]}</u>`;
-function openGloss(u){
-  const g = GLOSS[u.dataset.w]; if (!g) return;
-  $("gl-t").textContent = g[0]; $("gl-p").textContent = g[1]; $("gl").hidden = false;
-}
-const closeGloss = () => { $("gl").hidden = true; };
-$("gl-x").addEventListener("click", closeGloss);
-// In fase di cattura: la parola dentro un elenco a fisarmonica non deve aprirlo o chiuderlo
-document.addEventListener("click", e=>{
-  const u = e.target.closest("u[data-w]");
-  if (u){ e.preventDefault(); e.stopPropagation(); openGloss(u); }
-  else if (!e.target.closest("#gl")) closeGloss();
-}, true);
-document.addEventListener("keydown", e=>{
-  const u = e.target.closest && e.target.closest("u[data-w]");
-  if (u && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); openGloss(u); }
-  if (e.key==="Escape") closeGloss();
-});
-// Ogni parola spiegata, anche quelle create dopo, si raggiunge con il tasto Tab
-const prepW = () => document.querySelectorAll("u[data-w]:not([tabindex])").forEach(u=>{ u.tabIndex = 0; u.setAttribute("role","button"); });
-prepW();
-new MutationObserver(prepW).observe(document.body, {childList:true, subtree:true});
-
-/* Spesa pubblica italiana 2024 per funzione (Eurostat COFOG) ed entrate 2024 (Eurostat), in milioni di euro.
-   Stessi numeri e stessi nomi dello Scontrino pubblico (oggetto ITALIA): se cambiano lì, vanno cambiati anche qui. */
-const SPESA = [
-  {k:"Pensioni", d:"Pensioni di vecchiaia e ai superstiti, cioè a vedove, vedovi e orfani di un pensionato.", t:359572},
-  {k:"Sanità", d:"Ospedali, medici di base, visite specialistiche, farmaci e prevenzione.", t:146075},
-  {k:"Sussidi e assistenza", d:"Aiuti a chi è malato o invalido, alle famiglie con figli, a chi perde il lavoro e a chi è in povertà.", t:108563},
-  {k:"Istruzione", d:"Scuole dall'infanzia alle superiori, università e servizi come mense e trasporti scolastici.", t:89180},
-  {k:"Interessi sul debito", d:`Quello che si paga ogni anno a chi ha prestato soldi allo Stato comprando ${W("btp","titoli come BTP e BOT")}. È il prezzo del ${W("debito","debito")} accumulato negli anni.`, t:87789},
-  {k:"Funzionamento dello Stato", d:"Parlamento, governo, ministeri, riscossione delle tasse, rapporti con l'estero e ricerca di base.", t:82625},
-  {k:"Aiuti all'economia", d:"Incentivi alle imprese, politiche del lavoro, energia, industria e agricoltura.", t:60557},
-  {k:"Trasporti", d:"Strade, autostrade, ferrovie, trasporto pubblico locale, porti e aeroporti.", t:51824},
-  {k:"Sicurezza e giustizia", d:"Polizia, vigili del fuoco, tribunali e carceri.", t:39094},
-  {k:"Difesa", d:"Forze armate e missioni militari.", t:28301},
-  {k:"Ambiente", d:"Rifiuti, depurazione delle acque, inquinamento e tutela del paesaggio.", t:19828},
-  {k:"Cultura e sport", d:"Musei, biblioteche, impianti sportivi, televisione pubblica ed editoria.", t:18774},
-  {k:"Casa e territorio", d:"Case popolari, sviluppo urbano, illuminazione delle strade e acquedotti.", t:16973}
-];
-const SPESA_TOT = SPESA.reduce((a,x)=>a+x.t,0);   // 1.109.155 milioni
-const COFOG = SPESA.map(x=>({...x, p: x.t/SPESA_TOT*100})).sort((a,b)=>b.p-a.p);
-const ENTRATE_TOT = 1036025, CONTRIBUTI_TOT = 278140, PENSIONI_TOT = 359572, IVA_TOT = 145187, ACCISE_TOT = 99042;
-const RESIDENTI = 58934177;   // ISTAT, 1° gennaio 2025
-const PUBBLICO = "https://marvinbonazzo.github.io/scontrino-pubblico/";
-const mld = m => Math.round(m/1000).toLocaleString("it-IT",{useGrouping:"always"}) + " mld";
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
+{
+const AZ_RATE = 0.30, INPS_RATE = 0.0919, INPS_FASCIA = 56224, MENS = 13;
 function detrazioneLavoro(r){
   if (r <= 15000) return 1955;
   if (r <= 28000) return 1910 + 1190*(28000-r)/13000 + (r > 25000 ? 65 : 0);
@@ -466,221 +267,220 @@ function calc(ral){
   const netto = ral - inpsTu - irpef + bonus;
   return {ral, inpsAz, inpsAgg, inpsTu, imp, lorda, detrBase, ult, detr, irpef, ti, esente, bonus, netto, tfr, costo: ral+inpsAz+tfr};
 }
-
-/* Schermata 1 */
-const lordoIn = $("lordo"), go = $("go");
-// Accetta 2300, 2300,50 e anche 2.300 (punto delle migliaia)
-function parseLordo(s){
-  s = String(s).replace(/[€\s]/g, "");
-  if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, "");
-  s = s.replace(",", ".");
-  const n = parseFloat(s);
-  return isFinite(n) ? n : 0;
-}
-lordoIn.addEventListener("input", () => { const c = lordoIn.value.replace(/[^\d.,]/g, ""); if (c !== lordoIn.value) lordoIn.value = c; });
-const valid = () => parseLordo(lordoIn.value) >= 100;
-lordoIn.addEventListener("input", ()=> go.disabled = !valid());
-lordoIn.addEventListener("keydown", e=>{ if (e.key === "Enter" && valid()) start(); });
-document.querySelectorAll(".chips [data-v]").forEach(b=>b.addEventListener("click",()=>{lordoIn.value=b.dataset.v; go.disabled=false; lordoIn.focus();}));
-go.addEventListener("click", start);
-$("again").addEventListener("click", ()=>{ show("s-intro"); lordoIn.focus(); lordoIn.select(); });
-
-function show(id){
-  ["s-intro","s-load","s-res"].forEach(s=>$(s).hidden = s !== id);
-  window.scrollTo({top:0});
-}
-
-/* Schermata 2 */
-const STEPS = [
-  "Calcolo il lordo annuo",
-  "Aggiungo i contributi a carico dell'azienda",
-  "Tolgo i tuoi contributi INPS",
-  "Applico gli scaglioni IRPEF 2026",
-  "Sottraggo detrazioni e taglio del cuneo",
-  "Divido contributi e imposte tra le voci di spesa pubblica"
+const WHO = [
+  ["☕","Barista","Lavori in un bar del centro",1400],
+  ["🩺","Infermiera","Lavori in ospedale, a turni",2000],
+  ["💻","Programmatrice","Sviluppi app per un'azienda",3000]
 ];
-let timer = null;
-function start(){
-  if (!valid()) return;
-  show("s-load");
-  $("steps").innerHTML = STEPS.map(s=>`<div class="step"><span class="ic"></span><span>${s}</span></div>`).join("");
-  const els = [...document.querySelectorAll(".step")];
-  const DUR = reduce ? 400 : 4000;
-  $("arc").setAttribute("stroke-dashoffset", "276.46");
-  $("check").setAttribute("hidden", ""); $("pct").hidden = false;
-  $("pct").textContent = "0%";
-  cancelAnimationFrame(timer);
-  const t0 = performance.now();
-  const frame = now => {
-    const k = Math.min(1, (now - t0) / DUR);
-    const e = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;
-    const pct = Math.round(e * 100);
-    $("pct").textContent = pct + "%";
-    $("arc").setAttribute("stroke-dashoffset", (276.46 * (1 - e)).toFixed(2));
-    const idx = Math.min(els.length - 1, Math.floor(e * els.length));
-    els.forEach((el, j) => { el.classList.toggle("done", j < idx || k === 1); el.classList.toggle("run", j === idx && k < 1); });
-    if (k < 1) timer = requestAnimationFrame(frame);
-    else {
-      $("pct").hidden = true; $("check").removeAttribute("hidden");
-      setTimeout(()=>{ renderResult(); show("s-res"); }, reduce ? 150 : 900);
-    }
-  };
-  timer = requestAnimationFrame(frame);
+/* Glossario: ogni parola difficile, spiegata in una o due frasi per un ragazzo delle medie.
+   Nel testo: <u data-w="chiave">parola</u>, oppure W("chiave","parola") nelle frasi create in JS. */
+const GLOSS = {
+  lordo: ["Lordo", "Lo stipendio prima di togliere tasse e contributi. È la cifra scritta nel contratto, ma non è quella che arriva sul conto."],
+  netto: ["Netto", "Quello che resta dello stipendio dopo aver tolto tasse e contributi: sono i soldi che arrivano davvero sul conto."],
+  busta: ["Busta paga", "Il foglio che ogni mese spiega quanto si è guadagnato e quanto è stato tolto, voce per voce. Come lo scontrino dello stipendio."],
+  mens: ["Mensilità", "Quante volte all'anno arriva lo stipendio. 13 vuol dire i 12 mesi più la tredicesima: uno stipendio in più a dicembre."],
+  contributi: ["Contributi", "Soldi versati all'INPS per chi lavora. Una parte la paga l'azienda, una parte viene tolta dallo stipendio. Servono per pensioni, malattia e periodi senza lavoro."],
+  inps: ["INPS", "Istituto Nazionale della Previdenza Sociale: l'ente pubblico che incassa i contributi e paga le pensioni e gli aiuti a chi perde il lavoro o si ammala."],
+  pensione: ["Pensione", "I soldi che si ricevono ogni mese quando si smette di lavorare perché si è anziani. È come uno stipendio che arriva dopo il lavoro."],
+  irpef: ["IRPEF", "Imposta sul Reddito delle Persone Fisiche: la tassa principale su quello che si guadagna. Va allo Stato e serve a pagare scuole, ospedali, strade e pensioni."],
+  tfr: ["TFR", "Trattamento di Fine Rapporto: un salvadanaio che l'azienda riempie ogni mese per chi lavora. Si riceve quando si lascia quel lavoro: circa uno stipendio per ogni anno lavorato."],
+  imponibile: ["Reddito imponibile", "La parte di stipendio su cui si calcola l'IRPEF: il lordo dell'anno meno i contributi tolti dallo stipendio."],
+  aliquota: ["Aliquota", "La percentuale di tasse. Un'aliquota del 23% vuol dire 23 € di tasse ogni 100 €."],
+  detrazioni: ["Detrazioni", "Sconti sulle tasse decisi dalla legge. Si tolgono dall'IRPEF da pagare e sono più grandi per chi guadagna meno."],
+  cuneo: ["Taglio del cuneo fiscale", "Il \"cuneo\" è la differenza tra quanto spende l'azienda e quanto arriva a chi lavora. Il taglio è un aiuto dello Stato che lascia qualche euro in più nello stipendio, soprattutto a chi guadagna meno."],
+  spesa: ["Spesa pubblica", "Tutti i soldi che Stato, Regioni e Comuni spendono in un anno: pensioni, ospedali, scuole, strade e tutto il resto."],
+  eurostat: ["Eurostat", "L'ufficio statistico dell'Unione europea. Raccoglie i conti di tutti i Paesi con le stesse regole, così si possono confrontare."],
+  interessi: ["Interessi sul debito", "Negli anni lo Stato ha preso soldi in prestito. Come chi ha un mutuo per la casa, ogni anno paga un extra, gli interessi, a chi glieli ha prestati."],
+  debito: ["Debito pubblico", "Tutti i soldi che lo Stato ha preso in prestito negli anni e non ha ancora restituito. Ogni anno ci si pagano sopra gli interessi."],
+  deficit: ["Deficit", "Quando in un anno si spende più di quanto entra. La differenza si prende in prestito, e il debito cresce."],
+  btp: ["BTP e BOT", "Titoli di Stato: dei «pagherò» che lo Stato vende per farsi prestare soldi. Chi li compra presta soldi allo Stato e li riavrà indietro con gli interessi."],
+  iva: ["IVA", "Imposta sul Valore Aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che si compra. Il negozio la incassa e la gira allo Stato."],
+  accise: ["Accise", "Una tassa fissa su ogni litro o chilo di certi prodotti: benzina, gasolio, luce, gas, sigarette, alcolici. Resta uguale anche se il prezzo cambia."],
+  addizionale: ["Addizionali", "Piccoli pezzi di IRPEF in più che vanno alla Regione e al Comune dove si vive. La percentuale la decidono loro, entro i limiti della legge."]
+};
+const W = (k,t) => `<u data-w="${k}">${t}</u>`;
+/* Spesa pubblica 2024 per funzione, Eurostat COFOG, in milioni di euro: le stesse 13 voci (e gli stessi nomi)
+   dello Scontrino dello Stato, con gli stessi numeri. */
+const COFOG = [["🧓 Pensioni",359572],["🏥 Sanità",146075],["🤝 Sussidi e assistenza",108563],["🎒 Scuola",89180],["💳 "+W("interessi","Interessi sul debito"),87789],["🏛️ Funzionamento dello Stato",82625],["🏭 Aiuti all'economia",60557],["🚆 Trasporti",51824],["🚓 Sicurezza e giustizia",39094],["🪖 Difesa",28301],["♻️ Ambiente",19828],["⚽ Cultura e sport",18774],["💡 Casa e territorio",16973]];
+const SPESA_TOT = COFOG.reduce((a,x)=>a+x[1],0), ENTRATE_TOT = 1036025;   // milioni di euro, 2024
+const IVA_TOT = 145187, ACCISE_TOT = 99042, RESIDENTI = 58934177;          // milioni di euro 2024 (Eurostat); residenti ISTAT 1° gennaio 2025
+const $ = id => document.getElementById(id);
+const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
+const parse = s => { s = String(s).replace(/[€\s]/g,""); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s.replace(",",".")); return isFinite(n) ? n : 0; };
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const bar = (n,v,max) => `<div><span>${n}</span><em>${eur(v)} €</em><i><b style="--w:${(max?v/max*100:0).toFixed(1)}%"></b></i></div>`;
+let D = null;
+
+function build(name, lordo){
+  const c = calc(lordo*MENS), R = Math.round, d = {};
+  d.lordo = R(lordo); d.az = R(c.inpsAz/MENS); d.tfr = R(c.tfr/MENS); d.tu = R(c.inpsTu/MENS);
+  d.irpef = R((R(c.lorda)-R(c.detr))/MENS); d.bonus = R(c.bonus/MENS);
+  d.costo = d.lordo + d.az + d.tfr; d.netto = d.lordo - d.tu - d.irpef + d.bonus;
+  d.tax = Math.max(0, d.irpef - d.bonus); d.contr = d.az + d.tu; d.imp = c.imp;
+  d.pub = d.contr + d.tax;                                  // tutto quello che dal tuo lavoro va al settore pubblico
+  d.extra = R(d.pub*(SPESA_TOT/ENTRATE_TOT - 1));           // parte in più spesa e presa in prestito, in proporzione
+  D = d;
+  const set = (k,v) => document.querySelectorAll(`[data-f="${k}"]`).forEach(e=>e.innerHTML = v);
+  document.querySelectorAll("[data-k]").forEach(e=>e.dataset.n = d[e.dataset.k] ?? d.tax);
+  document.querySelector('[data-k="irpef"]').dataset.n = d.tax;
+  set("nome", name); set("pub", eur(d.pub)+" €"); set("lordo", eur(d.lordo)+" €"); set("az", eur(d.az)+" €"); set("tu", eur(d.tu)+" €");
+  set("fette", Math.max(1,Math.round(d.netto/d.costo*10)));
+  const sp = [[W("netto","Netto")+" sul conto",d.netto],[W("contributi","Contributi")+" pagati dall'azienda",d.az],[W("contributi","Contributi")+" tolti dallo stipendio",d.tu],[W("irpef","IRPEF"),d.tax],[W("tfr","TFR")+" messo da parte",d.tfr]];
+  $("split").innerHTML = sp.map(x=>bar(x[0],x[1],d.netto)).join("");
+  /* scalini IRPEF 2026 */
+  const S = [["23%","fino a 28.000 €",50],["33%","da 28.000 a 50.000 €",75],["43%","oltre 50.000 €",100]];
+  const lvl = d.imp > 50000 ? 2 : d.imp > 28000 ? 1 : 0;
+  $("steps").innerHTML = S.map((s,i)=>`<div class="${i===lvl?"me":""}" style="height:${s[2]}%">${s[0]}<small>${s[1]}</small></div>`).join("");
+  set("scal", `Ogni scalino ha la sua percentuale, l'${W("aliquota","aliquota")}. I primi 28.000 € dell'anno pagano il 23%, solo i soldi sopra i 28.000 € pagano il 33%, e così via. Per questo con un aumento non guadagni mai di meno. Il tuo ${W("imponibile","reddito imponibile")} è circa ${eur(d.imp)} € l'anno.`);
+  set("irpefTxt", d.tax < 30
+    ? `Quasi niente: chi guadagna poco ha sconti sulle tasse, le ${W("detrazioni","detrazioni")}, e il ${W("cuneo","taglio del cuneo fiscale")}. Insieme portano l'IRPEF quasi a zero.`
+    : `Chi guadagna di più ha percentuali più alte, ma le ${W("detrazioni","detrazioni")} e il ${W("cuneo","taglio del cuneo")} abbassano il conto. Su ogni 100 € ${W("lordo","lordi")} ne paghi in IRPEF circa ${Math.round(d.tax/d.lordo*100)}.`);
+  // Euro interi che sommati fanno esattamente d.pub: i resti vanno alle voci con la parte decimale più grande
+  const rawc = COFOG.map(x=>d.pub*x[1]/SPESA_TOT), flo = rawc.map(Math.floor);
+  let rest = d.pub - flo.reduce((a,b)=>a+b,0);
+  rawc.map((v,i)=>[v-flo[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if (rest>0){ flo[i]++; rest--; } });
+  const cf = COFOG.map((x,i)=>[x[0], flo[i]]);
+  $("cofog").innerHTML = cf.slice(0,6).map(x=>bar(x[0],x[1],cf[0][1])).join("");
+  const share = (d.az + d.tu + d.tax)/d.costo, day = new Date(2026,0,1); day.setDate(day.getDate() + Math.round(share*365) - 1);
+  set("data", day.toLocaleDateString("it-IT",{day:"numeric",month:"long"}));
+  const row = (n,v,cl="") => `<div class="row ${cl}"><span class="n"><span>${n}</span></span><span class="v">${v}</span></div>`;
+  $("rc").innerHTML = `<h3>SCONTRINO DELLO STIPENDIO</h3><div class="c">${name} · un mese<br>${eur(d.lordo)} € lordi × 13</div><hr>
+    ${row("Costo per l'azienda", eur(d.costo)+" €","t")}
+    ${row("- "+W("contributi","Contributi")+" azienda", eur(d.az)+" €")}${row("- "+W("tfr","TFR")+" messo da parte", eur(d.tfr)+" €")}
+    ${row("= "+W("lordo","Lordo")+" in busta", eur(d.lordo)+" €")}${row("- "+W("contributi","Contributi")+" tuoi", eur(d.tu)+" €")}
+    ${row("- "+W("irpef","IRPEF"), eur(d.irpef)+" €")}${d.bonus?row("+ "+W("cuneo","Taglio del cuneo"), eur(d.bonus)+" €"):""}<hr>
+    ${row(W("netto","NETTO"), eur(d.netto)+" €","t")}<hr>
+    <div class="c">CONTRIBUTI + IRPEF FINISCONO IN</div>
+    ${cf.map(x=>{ const [e,...t] = x[0].split(" "); return `<div class="row"><span>${e}</span><span class="n"><span>${t.join(" ")}</span></span><span class="v">${eur(x[1])} €</span></div>`; }).join("")}<hr>
+    ${row("Totale soldi pubblici", eur(d.pub)+" €","t")}
+    ${row("+ spesi in più, a "+W("deficit","prestito"), eur(d.extra)+" €")}
+    <div class="bc"></div><div class="c">GRAZIE E ARRIVEDERCI<br>al prossimo mese</div>
+    <div class="src">Cosa semplifica: regole 2026 per un dipendente senza figli o altri familiari a carico. Non conta le addizionali di Regione e Comune, né IVA e accise pagate quando si spende. I contributi dell'azienda sono una media, il 30%. Contributi e IRPEF sono divisi come la spesa pubblica 2024 per settore (Eurostat, COFOG); il prestito segue il rapporto tra spesa ed entrate 2024. Il netto esatto è quello scritto in busta paga.</div>`;
+  /* Pannello fonti e calcoli: lo stesso conto su un anno intero, con le regole e i numeri interi della spesa pubblica */
+  const E = v => eur(v)+" €", intero = m => eur(m*1e6)+" €";
+  const tr = (n,v,cl="") => `<tr class="${cl}"><td>${n}</td><td>${v}</td></tr>`;
+  // Ogni valore annuo arrotondato una volta sola: somme e differenze della tabella tornano all'euro
+  const y = {ral:R(c.ral), az:R(c.inpsAz), tfr:R(c.tfr), tu:R(c.inpsTu), lorda:R(c.lorda), detr:R(c.detr), bonus:R(c.bonus)};
+  y.costo = y.ral + y.az + y.tfr; y.imp = y.ral - y.tu; y.irpef = Math.max(0, y.lorda - y.detr); y.netto = y.imp - y.irpef + y.bonus;
+  $("info-body").innerHTML = `
+    <h4>Il conto di un anno: ${name}</h4>
+    <table>
+      ${tr(`${W("lordo","Lordo")} annuo (${eur(lordo)} € × ${MENS})`, E(y.ral))}
+      ${tr(`+ ${W("contributi","Contributi")} dell'azienda (30%)`, E(y.az))}
+      ${tr(`+ ${W("tfr","TFR")} (lordo ÷ 13,5)`, E(y.tfr))}
+      ${tr("= Costo per l'azienda", E(y.costo), "tot")}
+      ${tr(`Contributi tuoi (9,19%${c.inpsAgg?" + 1% oltre 56.224 €":""})`, E(y.tu))}
+      ${tr(`= ${W("imponibile","Reddito imponibile")}`, E(y.imp), "tot")}
+      ${tr("IRPEF a scaglioni", E(y.lorda))}
+      ${tr(`− ${W("detrazioni","Detrazioni")}`, E(y.detr))}
+      ${tr("= IRPEF da pagare", E(y.irpef), "tot")}
+      ${y.bonus?tr(`+ ${W("cuneo","Taglio del cuneo")} e bonus`, E(y.bonus)):""}
+      ${tr(`= ${W("netto","Netto")} annuo`, E(y.netto), "tot")}
+    </table>
+    <small>Le cifre del mese nelle storie sono questi valori divisi per ${MENS} mensilità e arrotondati all'euro.</small>
+
+    <h4>Le regole usate (2026, lavoratore dipendente)</h4>
+    <div class="f">Contributi azienda = lordo × 30%<br>È una media: cambia un po' con il settore e la grandezza dell'azienda.</div>
+    <div class="f">Contributi tuoi = lordo × 9,19%<br>+ 1% sulla parte di lordo sopra 56.224 € l'anno</div>
+    <div class="f">TFR = lordo annuo ÷ 13,5</div>
+    <div class="f">Imponibile = lordo − contributi tuoi<br>IRPEF = 23% fino a 28.000 €<br>+ 33% da 28.000 a 50.000 €<br>+ 43% oltre 50.000 €</div>
+    <div class="f">Detrazione per lavoro dipendente: 1.955 € fino a 15.000 € di imponibile, poi scende fino a 0 a 50.000 € (+65 € tra 25.000 e 35.000 €).<br>Ulteriore detrazione: 1.000 € tra 20.000 e 32.000 €, poi scende fino a 0 a 40.000 €.</div>
+    <div class="f">Taglio del cuneo: somma esente da tasse pari al 7,1% dell'imponibile fino a 8.500 €, 5,3% fino a 15.000 €, 4,8% fino a 20.000 €.<br>Trattamento integrativo: 1.200 € l'anno fino a 15.000 €, se l'IRPEF supera le detrazioni meno 75 €.</div>
+    <small>Non conta le ${W("addizionale","addizionali")} di Regione e Comune né familiari a carico. Il netto esatto è quello della busta paga.</small>
+
+    <h4>Spesa pubblica 2024, per voce</h4>
+    <table>${COFOG.map(x=>tr(x[0], intero(x[1]))).join("")}${tr("Totale spesa", intero(SPESA_TOT), "tot")}</table>
+    <div class="f">La tua parte di una voce<br>= soldi pubblici del mese × spesa della voce ÷ spesa totale<br>Esempio pensioni: ${E(d.pub)} × ${intero(COFOG[0][1])} ÷ ${intero(SPESA_TOT)} ≈ <b>${E(d.pub*COFOG[0][1]/SPESA_TOT)}</b></div>
+    <div class="f">Entrate pubbliche 2024: ${intero(ENTRATE_TOT)}<br>Spesi in più, a prestito = ${E(d.pub)} × (spesa ÷ entrate − 1) = <b>${E(d.extra)}</b> al mese</div>
+    <div class="f">IVA al giorno a testa = ${intero(IVA_TOT)} ÷ ${eur(RESIDENTI)} ÷ 365 = <b>6,75 €</b><br>Accise e consumi = ${intero(ACCISE_TOT)} ÷ ${eur(RESIDENTI)} ÷ 365 = <b>4,60 €</b></div>
+    <small>Eurostat pubblica i dati in milioni di euro: gli ultimi sei zeri vengono da lì.</small>
+
+    <h4>Fonti</h4>
+    <ul>
+      <li><a href="https://www.agenziaentrate.gov.it/" target="_blank" rel="noopener">Agenzia delle Entrate</a>: scaglioni IRPEF, detrazioni e taglio del cuneo (legge di bilancio 2026)</li>
+      <li><a href="https://www.inps.it/" target="_blank" rel="noopener">INPS</a>: aliquote dei contributi dei dipendenti</li>
+      <li><a href="https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table" target="_blank" rel="noopener">Eurostat, gov_10a_exp</a>: spesa pubblica per funzione</li>
+      <li><a href="https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table" target="_blank" rel="noopener">Eurostat, gov_10a_main</a>: entrate e spese totali</li>
+      <li><a href="https://demo.istat.it/" target="_blank" rel="noopener">ISTAT, demografia</a>: residenti al 1° gennaio 2025</li>
+    </ul>
+    <p>Quanti soldi arrivano in tutto allo Stato, da dove e come vengono spesi, lo vedi sullo <a href="https://marvinbonazzo.github.io/scontrino-pubblico/">Scontrino dello Stato</a>.</p>`;
+  prep();
+  go(1);
 }
 
-/* Schermata 3 */
-const TAGS = {A:"--c-azienda", T:"--c-tfr", B:"--c-inps", C:"--c-irpef", E:"--c-bonus"};
-function renderResult(){
-  const mens = Math.min(14, Math.max(12, +$("mens").value || 13));
-  const lordo = parseLordo(lordoIn.value);
-  const c = calc(lordo*mens);
-  const m = v => v/mens;
-  const R = Math.round;
-  // Cifre mensili arrotondate una volta sola, cosi somme e differenze tornano sempre al centesimo... anzi all'euro
-  const irpefA = R(c.lorda) - R(c.detr);
-  const d = {};
-  d.ral = R(lordo); d.inpsAz = R(c.inpsAz/mens); d.tfr = R(c.tfr/mens); d.inpsTu = R(c.inpsTu/mens);
-  d.irpef = R(irpefA/mens); d.bonus = R(c.bonus/mens);
-  d.costo = d.ral + d.inpsAz + d.tfr; d.imp = d.ral - d.inpsTu; d.netto = d.imp - d.irpef + d.bonus;
-  const taxesM = Math.max(0, d.irpef - d.bonus);
+$("who").innerHTML = WHO.map((w,i)=>`<button type="button" data-i="${i}"><span>${w[0]}</span><span>${w[1]} · ${eur(w[3])} €<small>${w[2]}</small></span></button>`).join("");
+$("who").addEventListener("click",e=>{ const b = e.target.closest("button"); if (b){ const w = WHO[+b.dataset.i]; build(w[1], w[3]); }});
+$("lordo").addEventListener("input",()=>{ $("go").disabled = parse($("lordo").value) < 100; });
+$("own").addEventListener("submit",e=>{ e.preventDefault(); const v = parse($("lordo").value); if (v >= 100) build("Tu", v); });
 
-  $("r-lordo").textContent = fmt(lordo);
-  $("r-costo").textContent = fmt(d.costo);
-  $("r-explain").innerHTML = `In busta paga vedi <b>${fmt(lordo)}</b> ${W("lordo","lordi")}, ma l'azienda ne spende <b>${fmt(d.costo)}</b>.`;
-
-  // Barra: ogni euro del costo del lavoro
-  const extraBonus = Math.max(0, d.bonus - d.irpef);
-  const segs = [
-    ["Contributi azienda", d.inpsAz, "--c-azienda", d.inpsAz],
-    ["TFR accantonato", d.tfr, "--c-tfr", d.tfr],
-    ["Contributi tuoi", d.inpsTu, "--c-inps", d.inpsTu],
-    ["IRPEF", taxesM, "--c-irpef", taxesM],
-    ["Netto a te", d.netto - extraBonus, "--c-netto", d.netto]
-  ];
-  const tot = segs.reduce((s,x)=>s+x[1],0) || 1;
-  const pctOf = v => Math.round(v/tot*100);
-  $("bar").innerHTML = segs.map((s,i)=>`<button type="button" class="seg" data-i="${i}" aria-label="${s[0]}: ${fmt(s[3])}, ${pctOf(s[1])}%" style="width:${s[1]/tot*100}%;background:var(${s[2]});animation-delay:${i*90}ms"></button>`).join("");
-  $("legend").innerHTML = segs.map((s,i)=>`<button type="button" data-i="${i}"><i style="background:var(${s[2]})"></i>${s[0]} <span class="mono">${fmt(s[3])}</span></button>`).join("");
-  const bar = $("bar"), tip = $("tip");
-  const showSeg = i => {
-    const el = bar.querySelector(`.seg[data-i="${i}"]`); if (!el) return;
-    bar.querySelectorAll(".seg").forEach(x=>x.classList.toggle("on", x===el));
-    bar.classList.add("hovering");
-    const s = segs[i];
-    tip.innerHTML = `${s[0]}: <b>${fmt(s[3])}</b> · <b>${pctOf(s[1])}%</b>` + (i===4 && extraBonus>0 ? ` <span style="opacity:.7">(con ${fmt(extraBonus)} di bonus)</span>` : "");
-    tip.hidden = false;
-    const wrap = bar.parentElement.getBoundingClientRect(), r = el.getBoundingClientRect();
-    const tw = tip.offsetWidth, center = r.left - wrap.left + r.width/2;
-    tip.style.left = Math.min(Math.max(center, tw/2), wrap.width - tw/2) + "px";
-    tip.style.setProperty("--x", "0");
-  };
-  const hideSeg = () => { bar.classList.remove("hovering"); bar.querySelectorAll(".seg").forEach(x=>x.classList.remove("on")); tip.hidden = true; };
-  bar.querySelectorAll(".seg").forEach(el=>{
-    const i = +el.dataset.i;
-    el.addEventListener("mouseenter", ()=>showSeg(i));
-    el.addEventListener("focus", ()=>showSeg(i));
-    el.addEventListener("click", ()=>showSeg(i));
+const SL = [...document.querySelectorAll(".slide")];
+$("bars").innerHTML = SL.map(()=>"<i><b></b></i>").join("");
+const B = [...$("bars").children];
+let cur = -1;
+function count(el){
+  const n = +el.dataset.n || 0;
+  if (still){ el.textContent = eur(n); return; }
+  const t0 = performance.now();
+  const f = now => { const x = Math.min(1,(now-t0)/900); el.textContent = eur(n*(1-(1-x)**3)); if (x<1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function go(i){
+  i = Math.max(0,Math.min(SL.length-1,i)); if (i===cur) return;
+  if (i>0 && !D) return;
+  cur = i;
+  SL.forEach((s,j)=>s.classList.toggle("on",j===i));
+  B.forEach((b,j)=>b.classList.toggle("done",j<=i));
+  SL[i].querySelectorAll("[data-k]").forEach(count);
+  const rc = $("rc"); rc.classList.remove("on-in");
+  if (i===SL.length-1){ void rc.offsetWidth; rc.classList.add("on-in"); SL[i].scrollTop = 0; }
+}
+/* Spiegazione delle parole: un cartoncino in basso che si apre toccando la parola */
+const sheet = $("sheet");
+let lastWord = null;
+function prep(){
+  document.querySelectorAll("u[data-w]:not([role])").forEach(u=>{
+    u.setAttribute("role","button"); u.tabIndex = 0;
+    u.setAttribute("aria-label", `${u.textContent}: cosa vuol dire`);
   });
-  bar.addEventListener("mouseleave", hideSeg);
-  bar.addEventListener("focusout", e=>{ if (!bar.contains(e.relatedTarget)) hideSeg(); });
-  $("legend").querySelectorAll("button").forEach(b=>{
-    b.addEventListener("mouseenter", ()=>showSeg(+b.dataset.i));
-    b.addEventListener("mouseleave", hideSeg);
-    b.addEventListener("click", ()=>showSeg(+b.dataset.i));
-  });
-  const pct = v => Math.round(v/d.costo*100) + "%";
-  $("s-netto").textContent = pct(d.netto);
-  $("s-inps").textContent = pct(d.inpsAz + d.inpsTu);
-  $("s-tax").textContent = pct(taxesM);
-
-  // Spiegazioni
-  const n2 = v => Math.round(v).toLocaleString("it-IT");
-  const V = (ref, title, amount, sign, calcHtml, what, where, back) => `
-    <details class="voce" id="v-${ref}"><summary><span class="stripe" style="background:var(${TAGS[ref]})"></span>
-      <span class="ttl">${title}</span><span class="amt" style="color:var(${TAGS[ref]})">${sign}${fmt(amount)}</span><span class="chev" aria-hidden="true"></span></summary>
-      <div class="body">
-        <div class="calc" style="--vc:var(${TAGS[ref]})"><span>Come si calcola</span>${calcHtml}</div>
-        <dl class="kv"><dt>Cos'è</dt><dd>${what}</dd><dt>Dove va</dt><dd>${where}</dd><dt>Ti torna?</dt><dd>${back}</dd></dl>
-      </div>
-    </details>`;
-  const S = (label, val) => `<div class="subtotal"><span>${label}</span><span>${fmt(val)}</span></div>`;
-
-  let h = "";
-  h += S("Costo totale per l'azienda", d.costo);
-  h += V("A", "Contributi INPS dell'azienda", d.inpsAz, "− ",
-    `<b>${n2(lordo)} €</b> lordo × <b>30%</b> = <b class="res">${n2(d.inpsAz)} €</b><small>L'azienda prende il tuo lordo e ne calcola il 30%. Questa cifra la paga l'azienda, <b>in aggiunta</b> al tuo stipendio: a te non viene tolto niente, il tuo lordo resta uguale. Il 30% è un valore medio: cambia un po' in base al settore e a quanti dipendenti ha l'azienda.</small>`,
-    `Una somma che l'azienda paga sopra il tuo stipendio e manda direttamente all'${W("inps","INPS")}. In busta paga non la vedi.`,
-    `All'INPS, l'ente pubblico della previdenza. Con questi soldi paga <b>oggi</b>: le pensioni di chi ha già smesso di lavorare, la malattia e la maternità di chi è a casa, la disoccupazione (${W("naspi","NASpI")}) di chi ha perso il lavoro, la ${W("cassaint","cassa integrazione")}. Una piccola parte va all'${W("inail","INAIL")}, l'assicurazione per gli infortuni sul lavoro.`,
-    `Sì, ma non come un salvadanaio. I soldi non restano fermi a tuo nome: escono subito per pagare le pensioni di oggi. Quello che resta a te è un <b>conteggio</b>: l'INPS segna quanto hai versato, e su quel totale calcolerà la tua pensione. Quando sarà il momento, a pagarla saranno i contributi di chi lavorerà allora. In più, se ti ammali, diventi genitore o perdi il lavoro, è questo sistema che ti paga.`);
-  h += V("T", "TFR", d.tfr, "− ",
-    `<b>${n2(c.ral)} €</b> lordo annuo ÷ <b>13,5</b> = <b>${n2(c.tfr)} €</b> l'anno, cioè <b class="res">${n2(d.tfr)} €</b> al mese<small>La legge dice di dividere la retribuzione annua per 13,5: in pratica circa una mensilità all'anno. Anche questo si aggiunge sopra il lordo.</small>`,
-    `Una parte di stipendio che l'azienda mette da parte per te: il ${W("tfr","trattamento di fine rapporto")}.`,
-    `Resta in azienda e cresce un po' ogni anno, oppure va a un fondo pensione se l'hai scelto.`,
-    `Sì, tutto. È uno stipendio rimandato: lo ricevi quando lasci quel lavoro (dimissioni, licenziamento, pensione). In alcuni casi puoi chiederne un anticipo, per esempio per comprare casa.`);
-  h += S("= Stipendio lordo", d.ral);
-  h += V("B", "Contributi INPS tuoi", d.inpsTu, "− ",
-    (c.inpsAgg > 0
-      ? `<b>${n2(lordo)} €</b> lordo × <b>9,19%</b> + <b>1%</b> sulla parte oltre ${n2(INPS_FASCIA)} € l'anno = <b class="res">${n2(d.inpsTu)} €</b><small>Questa volta esce <b>dal</b> tuo lordo: è una trattenuta. Sopra i ${n2(INPS_FASCIA)} € l'anno si aggiunge l'1%.</small>`
-      : `<b>${n2(lordo)} €</b> lordo × <b>9,19%</b> = <b class="res">${n2(d.inpsTu)} €</b><small>Questa volta esce <b>dal</b> tuo lordo: è una trattenuta.</small>`),
-    `Una parte del tuo stipendio che l'azienda trattiene dalla busta paga e versa all'INPS a tuo nome.`,
-    `Stesso posto dei contributi dell'azienda: l'INPS, che li usa per pagare pensioni e indennità di oggi.`,
-    `Sì, nello stesso modo: si somma al conteggio della tua pensione futura. Più anni lavori e più guadagni, più alta sarà. In più su questa parte non paghi IRPEF.`);
-  h += S(`= Su questo si calcola l'IRPEF (${W("imponibile","imponibile")})`, d.imp);
-  h += V("C", "IRPEF", d.irpef, "− ",
-    `<b>${n2(lordo)} €</b> − <b>${n2(d.inpsTu)} €</b> contributi = <b>${n2(d.imp)} €</b> imponibile<br>
-     Su un anno: ${n2(c.imp)} € tassati a scaglioni = <b>${n2(c.lorda)} €</b> − detrazioni <b>${n2(c.detr)} €</b> = <b>${n2(irpefA)} €</b><br>
-     ${n2(irpefA)} € ÷ ${mens} mensilità = <b class="res">${n2(d.irpef)} €</b> al mese
-     <small>${W("scaglioni","Scaglioni")}: 23% fino a 28.000 € l'anno, 33% da 28.000 a 50.000 €, 43% oltre. Ogni percentuale vale solo per la parte di reddito dentro quel gradino. Le ${W("detrazioni","detrazioni")} sono uno sconto per chi lavora come dipendente, più alto per i redditi bassi.</small>`,
-    `L'${W("irpef","imposta sul reddito")}. Si paga sul lordo meno i tuoi contributi.`,
-    `Allo Stato. Non ha un uso preciso: entra nella cassa comune insieme ai contributi, all'${W("iva","IVA")} e a tutte le altre entrate, e paga di tutto, dalla sanità alla scuola, dalle pensioni agli interessi sul debito. Come viene spesa lo vedi nella sezione «Dove vanno» qui sopra.`,
-    `Non in soldi, ma in servizi: l'ospedale, la scuola, le strade, la polizia. Li usi anche se non ci pensi.`);
-  if (d.bonus > 0) h += V("E", "Bonus dallo Stato", d.bonus, "+ ",
-    `${W("integrativo","Trattamento integrativo")} (fino a 1.200 € l'anno sotto i 15.000 € di reddito) e somma esente del ${W("cuneo","cuneo fiscale")} (dal 4,8% al 7,1% del reddito sotto i 20.000 €): <b class="res">${n2(d.bonus)} €</b> al mese`,
-    `Soldi in più previsti per chi guadagna poco.`,
-    `Direttamente in busta paga.`,
-    `Sono già tuoi: alzano il netto senza toccare i contributi, quindi senza ridurre la pensione futura.`);
-  h += S("= Netto del mese", d.netto).replace('<span>${','<span>${').replace('class="subtotal"','class="subtotal net"');
-  $("voci").innerHTML = h;
-
-  // Tutto quello che dal tuo lavoro va al settore pubblico: contributi (azienda e tuoi) e IRPEF al netto dei bonus
-  const pub = d.inpsAz + d.inpsTu + taxesM;
-  $("taxTot").textContent = fmt(pub) + " al mese";
-  $("split-hint").innerHTML = `Contributi dell'azienda <b class="mono">${fmt(d.inpsAz)}</b> + contributi tuoi <b class="mono">${fmt(d.inpsTu)}</b> + IRPEF <b class="mono">${fmt(taxesM)}</b>. Entrano nei conti pubblici insieme ai soldi di tutti e non hanno un'etichetta: qui li dividiamo come il settore pubblico ha speso nel 2024. È l'ultimo anno con la spesa divisa per voce: ${W("eurostat","Eurostat")} pubblica il 2025 a inizio 2027.`;
-  const extra = pub * (SPESA_TOT/ENTRATE_TOT - 1);
-  $("split-facts").innerHTML = [
-    ["1","Perché contiamo anche i contributi?",
-      `I ${W("contributi","contributi")} vanno all'INPS, per le pensioni e gli aiuti a chi non può lavorare. Ma in tutta Italia nel 2024 i contributi sono stati <b>${mld(CONTRIBUTI_TOT)}</b> e le sole pensioni sono costate <b>${mld(PENSIONI_TOT)}</b>: il resto lo mette lo Stato con le altre tasse. Alla fine è una cassa sola, per questo li contiamo insieme.`],
-    ["2","Lo Stato spende più di quanto incassa",
-      `Nel 2024, per ogni 100 € entrati, il settore pubblico ne ha spesi ${Math.round(SPESA_TOT/ENTRATE_TOT*100)}. In proporzione ai tuoi ${fmt(pub)}, sono altri <b>${fmt(extra)}</b> al mese spesi in più e presi in prestito: è il ${W("deficit","deficit")}. Si aggiunge al ${W("debito","debito")}, che si ripaga negli anni con gli ${W("interessi","interessi")}, anche con le tasse future.`],
-    ["3","Non è un conto a tuo nome",
-      `Lo Stato non segna dove va la tua IRPEF. Questa divisione mostra come sarebbero ripartiti i tuoi soldi se seguissero la spesa pubblica totale. Il dettaglio di ogni voce, e da dove arrivano tutti gli altri soldi, è sullo <a href="${PUBBLICO}">Scontrino pubblico</a>.`]
-  ].map(([n,h,p])=>`<div class="fact"><span class="n">${n}</span><div><h3>${h}</h3><p>${p}</p></div></div>`).join("");
-
-  // Tasse che non passano dalla busta paga: solo regole e medie ufficiali, nessuna stima personale
-  const perRes = m => fmt(m*1e6/RESIDENTI);
-  $("hidden-tax").innerHTML = [
-    ["€",`${W("iva","IVA")} su quello che compri`,
-      `È già nel prezzo di quasi tutto. In una felpa da 30 € con IVA al 22% ci sono 5,41 € di IVA. In Italia l'IVA vale in media <b>${perRes(IVA_TOT)}</b> l'anno per ${W("residenti","residente")}, bambini compresi.`],
-    ["€",`${W("accise","Accise")}`,
-      `Nel pieno di benzina, nelle bollette di luce e gas, nelle sigarette. Con le altre imposte sui consumi valgono in media <b>${perRes(ACCISE_TOT)}</b> l'anno per residente.`],
-    ["€",`${W("addizionale","Addizionali IRPEF")} di Regione e Comune`,
-      `Sono in busta paga, ma questo scontrino non le conta perché cambiano da posto a posto. Quanto incassa il tuo Comune lo vedi sullo <a href="${PUBBLICO}">Scontrino pubblico</a>, scegliendo il Comune.`],
-    ["€","Casa e auto",
-      `L'${W("imu","IMU")} se hai una seconda casa, la ${W("tari","TARI")} per i rifiuti, il bollo se hai un'auto o una moto.`]
-  ].map(([n,h,p])=>`<div class="fact"><span class="n">${n}</span><div><h3>${h}</h3><p>${p}</p></div></div>`).join("");
-
-  const max = Math.max(...COFOG.map(x=>x.p));
-  const raw = COFOG.map(x=>pub*x.p/100), flo = raw.map(Math.floor);
-  let left = pub - flo.reduce((a,b)=>a+b,0);
-  raw.map((v,i)=>[v-flo[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if (left>0){ flo[i]++; left--; } });
-  $("split").innerHTML = COFOG.map((x,i)=>{
-      const v = flo[i];
-      const pc = x.p.toLocaleString("it-IT",{minimumFractionDigits:1, maximumFractionDigits:1});
-      return `<details class="voce srow2"><summary><span class="stripe" style="background:var(--c-irpef)"></span>
-        <span class="ttl"><span class="tname">${x.k}</span><span class="mbar"><span style="width:${x.p/max*100}%"></span></span></span><span class="pc">${pc}% di ${fmt(pub)}</span><span class="amt">${fmt(v)}</span><span class="chev" aria-hidden="true"></span></summary>
-        <div class="body"><p class="sdesc">${x.d}</p></div></details>`;
-    }).join("") + `<div class="subtotal"><span>Totale del mese</span><span>${fmt(pub)}</span></div>`;
+}
+function explain(u){
+  const g = GLOSS[u.dataset.w]; if (!g) return;
+  lastWord = u;
+  $("sh-t").textContent = g[0]; $("sh-p").textContent = g[1];
+  sheet.hidden = false; $("sh-ok").focus({preventScroll:true});
+}
+function closeSheet(){
+  if (sheet.hidden) return;
+  sheet.hidden = true;
+  if (lastWord && lastWord.closest(".slide.on")) lastWord.focus({preventScroll:true});
+}
+$("ph").addEventListener("click",e=>{
+  const u = e.target.closest("u[data-w]");
+  if (u){ e.stopPropagation(); e.preventDefault(); explain(u); return; }
+  if (!sheet.hidden){ e.stopPropagation(); e.preventDefault(); closeSheet(); }
+}, true);
+$("ph").addEventListener("click",e=>{
+  if (cur===0 || cur===SL.length-1) return;
+  if (e.target.closest("button,input,form")) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  go(e.clientX - r.left < r.width*.3 ? cur-1 : cur+1);
+});
+$("again").addEventListener("click",()=>go(0));
+const info = $("info");
+$("info-open").addEventListener("click",()=>{ info.hidden = false; info.scrollTop = 0; $("info-x").focus({preventScroll:true}); });
+$("info-x").addEventListener("click",()=>{ info.hidden = true; $("info-open").focus({preventScroll:true}); });
+addEventListener("keydown",e=>{
+  if (!sheet.hidden && (e.key==="Escape" || e.key.startsWith("Arrow"))){ e.preventDefault(); closeSheet(); return; }
+  const u = e.target.closest && e.target.closest("u[data-w]");
+  if (u && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); explain(u); return; }
+  if (!info.hidden){ if (e.key==="Escape"){ info.hidden = true; $("info-open").focus({preventScroll:true}); } return; }
+  if (e.target.tagName==="INPUT" || cur===0) return;
+  if (e.key==="ArrowRight") go(cur+1);
+  if (e.key==="ArrowLeft") go(cur-1);
+});
+prep();
+go(0);
 }
 </script>
-
-</body></html>
+</body>
+</html>
