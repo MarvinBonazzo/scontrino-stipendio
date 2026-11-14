@@ -84,6 +84,27 @@ u[data-w]:hover{background:#fff4}
 .sheet h3{font-weight:900;font-size:22px;line-height:1.1}
 .sheet p{max-width:none;font-size:16px}
 .sheet button{justify-self:start;font:700 15px Archivo,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:99px;background:#111;color:#fff;cursor:pointer}
+/* Bottoni finali: le due pagine complete e il pannello con fonti, calcoli e numeri interi */
+.ends{display:grid;gap:10px;width:100%;margin-top:14px}
+.ends .link{margin:0;width:100%;display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;font:700 16px Archivo,sans-serif;min-height:48px;padding:10px 22px;line-height:1.25;border-radius:99px;border:0;background:#fff;color:#111;cursor:pointer}
+.ends .link.src{background:transparent;color:#fff;border:2px solid #fff}
+.ends .link:focus-visible{outline:3px solid #ffd60a;outline-offset:3px}
+/* Pannello fonti e calcoli: copre il telefono e scorre */
+.info{position:absolute;inset:0;z-index:20;background:#fbfaf6;color:#111;overflow-y:auto;padding:0 20px 32px;font-size:15px;line-height:1.45}
+.info[hidden]{display:none}
+.info-top{position:sticky;top:0;z-index:1;background:#fbfaf6;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:18px 0 10px;border-bottom:2px solid #111}
+.info h3{font-weight:900;font-size:22px;line-height:1.1}
+.info h4{font-weight:900;font-size:17px;margin:20px 0 6px}
+.info p{max-width:none;margin:6px 0}
+.info small{display:block;font-size:13px;opacity:.7;margin-top:4px}
+.info table{width:100%;border-collapse:collapse;font:400 12.5px/1.4 "Space Mono",monospace;margin-top:6px}
+.info td{padding:5px 0;border-bottom:1px dashed #2223;vertical-align:top}
+.info td:last-child{text-align:right;white-space:nowrap;padding-left:10px}
+.info tr.tot td{font-weight:700;border-bottom:0;border-top:2px solid #111}
+.info .f{font:400 12.5px/1.55 "Space Mono",monospace;background:#efece4;border-radius:8px;padding:8px 10px;margin:6px 0}
+.info ul{margin:6px 0 0;padding-left:18px;display:grid;gap:6px}
+.info a{color:#3048d6}
+.info .x{margin:0;flex:none;width:40px;min-height:40px;padding:0;border:0;border-radius:99px;background:#111;color:#fff;font:700 16px Archivo,sans-serif;cursor:pointer}
 @keyframes up{from{transform:translateY(20px);opacity:0}}
 button:focus-visible,input:focus-visible,u[data-w]:focus-visible{outline:3px solid #4361ff;outline-offset:3px}
 @keyframes print{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0)}}
@@ -191,8 +212,17 @@ button:focus-visible,input:focus-visible,u[data-w]:focus-visible{outline:3px sol
     <span class="chip">La busta paga, come scontrino</span>
     <div class="receipt" id="rc"></div>
     <button class="again" id="again" type="button">Prova un altro lavoro</button>
-    <a class="again link" href="https://marvinbonazzo.github.io/scontrino-pubblico/wrapped/">E tutti gli altri soldi? Il Wrapped dello Stato →</a>
+    <div class="ends">
+      <a class="link" href="https://marvinbonazzo.github.io/scontrino-stipendio/">Scontrino dello stipendio</a>
+      <a class="link" href="https://marvinbonazzo.github.io/scontrino-pubblico/">Scontrino dello Stato</a>
+      <button class="link src" id="info-open" type="button">Fonti, calcoli e numeri interi</button>
+    </div>
   </section>
+
+  <div class="info" id="info" hidden role="dialog" aria-labelledby="info-t">
+    <div class="info-top"><h3 id="info-t">Fonti, calcoli e numeri interi</h3><button class="x" id="info-x" type="button" aria-label="Chiudi">✕</button></div>
+    <div id="info-body"></div>
+  </div>
 
   <div class="sheet" id="sheet" role="dialog" aria-labelledby="sh-t" hidden>
     <h3 id="sh-t"></h3>
@@ -273,6 +303,7 @@ const W = (k,t) => `<u data-w="${k}">${t}</u>`;
    del Wrapped dello Stato, con gli stessi numeri dello Scontrino delle tasse e dello Scontrino pubblico. */
 const COFOG = [["🧓 Pensioni",359572],["🏥 Sanità",146075],["🤝 Sussidi e assistenza",108563],["🎒 Scuola",89180],["💳 "+W("interessi","Interessi sul debito"),87789],["🏛️ Funzionamento dello Stato",82625],["🏭 Aiuti all'economia",60557],["🚆 Trasporti",51824],["🚓 Sicurezza e giustizia",39094],["🪖 Difesa",28301],["♻️ Ambiente",19828],["⚽ Cultura e sport",18774],["💡 Casa e territorio",16973]];
 const SPESA_TOT = COFOG.reduce((a,x)=>a+x[1],0), ENTRATE_TOT = 1036025;   // milioni di euro, 2024
+const IVA_TOT = 145187, ACCISE_TOT = 99042, RESIDENTI = 58934177;          // milioni di euro 2024 (Eurostat); residenti ISTAT 1° gennaio 2025
 const $ = id => document.getElementById(id);
 const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
 const parse = s => { s = String(s).replace(/[€\s]/g,""); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s.replace(",",".")); return isFinite(n) ? n : 0; };
@@ -325,6 +356,54 @@ function build(name, lordo){
     ${row("+ spesi in più, a "+W("deficit","prestito"), eur(d.extra)+" €")}
     <div class="bc"></div><div class="c">GRAZIE E ARRIVEDERCI<br>al prossimo mese</div>
     <div class="src">Cosa semplifica: regole 2026 per un dipendente senza figli o altri familiari a carico. Non conta le addizionali di Regione e Comune, né IVA e accise pagate quando si spende. I contributi dell'azienda sono una media, il 30%. Contributi e IRPEF sono divisi come la spesa pubblica 2024 per settore (Eurostat, COFOG); il prestito segue il rapporto tra spesa ed entrate 2024. Il netto esatto è quello scritto in busta paga.</div>`;
+  /* Pannello fonti e calcoli: lo stesso conto su un anno intero, con le regole e i numeri interi della spesa pubblica */
+  const E = v => eur(v)+" €", intero = m => eur(m*1e6)+" €";
+  const tr = (n,v,cl="") => `<tr class="${cl}"><td>${n}</td><td>${v}</td></tr>`;
+  // Ogni valore annuo arrotondato una volta sola: somme e differenze della tabella tornano all'euro
+  const y = {ral:R(c.ral), az:R(c.inpsAz), tfr:R(c.tfr), tu:R(c.inpsTu), lorda:R(c.lorda), detr:R(c.detr), bonus:R(c.bonus)};
+  y.costo = y.ral + y.az + y.tfr; y.imp = y.ral - y.tu; y.irpef = Math.max(0, y.lorda - y.detr); y.netto = y.imp - y.irpef + y.bonus;
+  $("info-body").innerHTML = `
+    <h4>Il conto di un anno: ${name}</h4>
+    <table>
+      ${tr(`${W("lordo","Lordo")} annuo (${eur(lordo)} € × ${MENS})`, E(y.ral))}
+      ${tr(`+ ${W("contributi","Contributi")} dell'azienda (30%)`, E(y.az))}
+      ${tr(`+ ${W("tfr","TFR")} (lordo ÷ 13,5)`, E(y.tfr))}
+      ${tr("= Costo per l'azienda", E(y.costo), "tot")}
+      ${tr(`Contributi tuoi (9,19%${c.inpsAgg?" + 1% oltre 56.224 €":""})`, E(y.tu))}
+      ${tr(`= ${W("imponibile","Reddito imponibile")}`, E(y.imp), "tot")}
+      ${tr("IRPEF a scaglioni", E(y.lorda))}
+      ${tr(`− ${W("detrazioni","Detrazioni")}`, E(y.detr))}
+      ${tr("= IRPEF da pagare", E(y.irpef), "tot")}
+      ${y.bonus?tr(`+ ${W("cuneo","Taglio del cuneo")} e bonus`, E(y.bonus)):""}
+      ${tr(`= ${W("netto","Netto")} annuo`, E(y.netto), "tot")}
+    </table>
+    <small>Le cifre del mese nelle storie sono questi valori divisi per ${MENS} mensilità e arrotondati all'euro.</small>
+
+    <h4>Le regole usate (2026, lavoratore dipendente)</h4>
+    <div class="f">Contributi azienda = lordo × 30%<br>È una media: cambia un po' con il settore e la grandezza dell'azienda.</div>
+    <div class="f">Contributi tuoi = lordo × 9,19%<br>+ 1% sulla parte di lordo sopra 56.224 € l'anno</div>
+    <div class="f">TFR = lordo annuo ÷ 13,5</div>
+    <div class="f">Imponibile = lordo − contributi tuoi<br>IRPEF = 23% fino a 28.000 €<br>+ 33% da 28.000 a 50.000 €<br>+ 43% oltre 50.000 €</div>
+    <div class="f">Detrazione per lavoro dipendente: 1.955 € fino a 15.000 € di imponibile, poi scende fino a 0 a 50.000 € (+65 € tra 25.000 e 35.000 €).<br>Ulteriore detrazione: 1.000 € tra 20.000 e 32.000 €, poi scende fino a 0 a 40.000 €.</div>
+    <div class="f">Taglio del cuneo: somma esente da tasse pari al 7,1% dell'imponibile fino a 8.500 €, 5,3% fino a 15.000 €, 4,8% fino a 20.000 €.<br>Trattamento integrativo: 1.200 € l'anno fino a 15.000 €, se l'IRPEF supera le detrazioni meno 75 €.</div>
+    <small>Non conta le ${W("addizionale","addizionali")} di Regione e Comune né familiari a carico. Il netto esatto è quello della busta paga.</small>
+
+    <h4>Spesa pubblica 2024, per voce</h4>
+    <table>${COFOG.map(x=>tr(x[0], intero(x[1]))).join("")}${tr("Totale spesa", intero(SPESA_TOT), "tot")}</table>
+    <div class="f">La tua parte di una voce<br>= soldi pubblici del mese × spesa della voce ÷ spesa totale<br>Esempio pensioni: ${E(d.pub)} × ${intero(COFOG[0][1])} ÷ ${intero(SPESA_TOT)} ≈ <b>${E(d.pub*COFOG[0][1]/SPESA_TOT)}</b></div>
+    <div class="f">Entrate pubbliche 2024: ${intero(ENTRATE_TOT)}<br>Spesi in più, a prestito = ${E(d.pub)} × (spesa ÷ entrate − 1) = <b>${E(d.extra)}</b> al mese</div>
+    <div class="f">IVA al giorno a testa = ${intero(IVA_TOT)} ÷ ${eur(RESIDENTI)} ÷ 365 = <b>6,75 €</b><br>Accise e consumi = ${intero(ACCISE_TOT)} ÷ ${eur(RESIDENTI)} ÷ 365 = <b>4,60 €</b></div>
+    <small>Eurostat pubblica i dati in milioni di euro: gli ultimi sei zeri vengono da lì.</small>
+
+    <h4>Fonti</h4>
+    <ul>
+      <li><a href="https://www.agenziaentrate.gov.it/" target="_blank" rel="noopener">Agenzia delle Entrate</a>: scaglioni IRPEF, detrazioni e taglio del cuneo (legge di bilancio 2026)</li>
+      <li><a href="https://www.inps.it/" target="_blank" rel="noopener">INPS</a>: aliquote dei contributi dei dipendenti</li>
+      <li><a href="https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table" target="_blank" rel="noopener">Eurostat, gov_10a_exp</a>: spesa pubblica per funzione</li>
+      <li><a href="https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table" target="_blank" rel="noopener">Eurostat, gov_10a_main</a>: entrate e spese totali</li>
+      <li><a href="https://demo.istat.it/" target="_blank" rel="noopener">ISTAT, demografia</a>: residenti al 1° gennaio 2025</li>
+    </ul>
+    <p>Lo stesso conto, voce per voce, è sullo <a href="https://marvinbonazzo.github.io/scontrino-stipendio/">Scontrino dello stipendio</a>.</p>`;
   prep();
   go(1);
 }
@@ -387,10 +466,14 @@ $("ph").addEventListener("click",e=>{
   go(e.clientX - r.left < r.width*.3 ? cur-1 : cur+1);
 });
 $("again").addEventListener("click",()=>go(0));
+const info = $("info");
+$("info-open").addEventListener("click",()=>{ info.hidden = false; info.scrollTop = 0; $("info-x").focus({preventScroll:true}); });
+$("info-x").addEventListener("click",()=>{ info.hidden = true; $("info-open").focus({preventScroll:true}); });
 addEventListener("keydown",e=>{
   if (!sheet.hidden && (e.key==="Escape" || e.key.startsWith("Arrow"))){ e.preventDefault(); closeSheet(); return; }
   const u = e.target.closest && e.target.closest("u[data-w]");
   if (u && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); explain(u); return; }
+  if (!info.hidden){ if (e.key==="Escape"){ info.hidden = true; $("info-open").focus({preventScroll:true}); } return; }
   if (e.target.tagName==="INPUT" || cur===0) return;
   if (e.key==="ArrowRight") go(cur+1);
   if (e.key==="ArrowLeft") go(cur-1);

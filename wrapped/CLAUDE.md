@@ -51,3 +51,6 @@ Ogni parola tecnica (IRPEF, TFR, INPS, lordo, netto, detrazioni…) si può tocc
 
 ## Cose da sistemare
 - Pulsante per esportare lo scontrino finale come immagine da condividere.
+
+## Fine della storia
+Sotto lo scontrino finale: "Prova un altro lavoro", poi i link alle due pagine complete ("Scontrino dello stipendio", "Scontrino dello Stato") e il bottone "Fonti, calcoli e numeri interi". Il pannello `#info` si riempie in `build()`: il conto di un anno per lo stipendio scelto (ogni valore arrotondato una volta sola, così le somme tornano), le regole fiscali usate, la spesa pubblica 2024 in euro interi, le formule e i link alle fonti. Se cambi le regole in `calc()`, aggiorna anche il testo delle regole nel pannello.
