@@ -236,8 +236,9 @@ const GLOSS = {
   iva: ["IVA", "Imposta sul Valore Aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che si compra. Il negozio la incassa e la gira allo Stato."]
 };
 const W = (k,t) => `<u data-w="${k}">${t}</u>`;
-/* Spesa pubblica 2024 per funzione, Eurostat COFOG, punti di PIL (totale 50,4), come nello Scontrino delle tasse */
-const COFOG = [["👵 Nonni in pensione",15.975],["🏥 Ospedali e medici",6.6],["🤝 Aiuti a chi ha bisogno",5.325],["💳 "+W("debito","Interessi sul debito"),4.0],["🎒 Scuola",4.0],["🏛️ Far funzionare lo Stato",3.7],["🏭 Aiuti alle aziende",2.7],["🚆 Strade, treni e bus",2.4],["🚓 Sicurezza e ambiente",4.4],["🪖 Esercito",1.3]];
+/* Spesa pubblica 2024 per funzione, Eurostat COFOG, in milioni di euro: stessi numeri dello Scontrino delle tasse e dello Scontrino pubblico.
+   "Sicurezza e ambiente" somma sicurezza e giustizia, ambiente, cultura e sport, casa e territorio. */
+const COFOG = [["👵 Nonni in pensione",359572],["🏥 Ospedali e medici",146075],["🤝 Aiuti a chi ha bisogno",108563],["🎒 Scuola",89180],["💳 "+W("debito","Interessi sul debito"),87789],["🏛️ Far funzionare lo Stato",82625],["🏭 Aiuti alle aziende",60557],["🚆 Strade, treni e bus",51824],["🚓 Sicurezza e ambiente",39094+19828+18774+16973],["🪖 Esercito",28301]];
 const $ = id => document.getElementById(id);
 const eur = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"});
 const parse = s => { s = String(s).replace(/[€\s]/g,""); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,""); const n = parseFloat(s.replace(",",".")); return isFinite(n) ? n : 0; };

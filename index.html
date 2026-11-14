@@ -234,6 +234,26 @@ summary{cursor:pointer;color:var(--muted);font-weight:600}
 .big-input input::placeholder{color:var(--muted);opacity:.6}
 .big-input input:focus{border-color:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Spiegazioni numerate: perché anche i contributi, il debito, le tasse che non vedi */
+.facts{max-width:600px;margin:16px auto 0;display:flex;flex-direction:column;gap:16px}
+.fact{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;align-items:start}
+.fact .n{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1;color:var(--c-netto);text-align:center;padding-top:2px}
+.fact h3{text-align:left!important;margin:0 0 4px!important}
+.fact p{color:var(--muted);font-size:.98rem}
+.fact p b{color:var(--ink);font-family:var(--mono);font-weight:600;word-spacing:-.3em}
+.fact a,.lede a{color:var(--accent)}
+.more{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.ghost{display:inline-block;text-decoration:none;font-family:var(--display);font-weight:700;font-size:1.05rem;background:transparent;color:var(--ink);border:1px solid var(--rule);border-radius:10px;padding:13px 22px}
+.ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Parole spiegate: si toccano e si apre un cartoncino in basso */
+u[data-w]{text-decoration:underline dotted;text-decoration-color:var(--muted);text-underline-offset:3px;text-decoration-thickness:1.5px;cursor:help;border-radius:3px}
+u[data-w]:hover,u[data-w]:focus-visible{color:var(--accent);text-decoration-color:var(--accent);outline:none}
+.gl{position:fixed;z-index:30;left:50%;transform:translateX(-50%);bottom:max(16px, env(safe-area-inset-bottom, 0px));width:min(480px, calc(100% - 32px));background:var(--ink);color:var(--paper);border-radius:12px;padding:16px 18px 14px;box-shadow:0 10px 30px rgba(0,0,0,.6);display:grid;gap:6px;text-align:left}
+.gl b{font-family:var(--display);font-size:1.15rem}
+.gl p{font-size:1rem;line-height:1.45}
+.gl button{justify-self:end;font-family:var(--body);font-weight:600;background:var(--paper);color:var(--ink);border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
 </style>
 
 <div class="wrap">
@@ -241,6 +261,7 @@ summary{cursor:pointer;color:var(--muted);font-weight:600}
   <!-- 1. Inserimento -->
   <section class="screen intro" id="s-intro">
     <h1>Cosa paghi davvero con il tuo stipendio?</h1>
+    <p class="lede">Scrivi il tuo stipendio <u data-w="lordo">lordo</u>: vedi quanto va all'<u data-w="inps">INPS</u> e allo Stato, quanto resta a te, e cosa si paga con i tuoi soldi.</p>
     <div class="panel screen" style="gap:16px">
       <div>
         <label for="lordo">Stipendio lordo mensile</label>
@@ -301,9 +322,10 @@ summary{cursor:pointer;color:var(--muted);font-weight:600}
     </div>
 
     <div class="panel">
-      <h2>Dove vanno i tuoi <span class="mono" id="taxTot"></span> di imposte</h2>
-      <p class="hint" style="margin-top:6px">L'IRPEF di un mese, divisa secondo come lo Stato ha speso nel 2024 (dati Eurostat, l'ultimo anno disponibile: il 2025 per voce esce a inizio 2027).</p>
+      <h2>Dove vanno i <span class="mono" id="taxTot"></span> che il tuo lavoro dà al settore pubblico</h2>
+      <p class="hint" style="margin-top:6px" id="split-hint"></p>
       <div class="split" id="split"></div>
+      <div class="facts" id="split-facts"></div>
     </div>
 
     <div class="panel">
@@ -311,28 +333,104 @@ summary{cursor:pointer;color:var(--muted);font-weight:600}
       <div class="voci" id="voci"></div>
     </div>
 
+    <div class="panel">
+      <h2>Le tasse che questo scontrino non conta</h2>
+      <p class="hint" style="margin-top:6px">Lo scontrino segue il tuo stipendio fino al <u data-w="netto">netto</u>. Ma paghi tasse anche dopo, quando lo spendi. Non le calcoliamo per te, perché dipendono da cosa compri e da dove vivi.</p>
+      <div class="facts" id="hidden-tax"></div>
+    </div>
+
+    <div class="panel more">
+      <h2>Hai visto la tua parte. E il totale?</h2>
+      <p class="hint">Lo Scontrino pubblico mostra quanti soldi arrivano in tutto allo Stato, da dove, come vengono spesi e perché non bastano. Per l'Italia e per ognuno dei circa 7.900 Comuni.</p>
+      <a class="ghost" href="https://marvinbonazzo.github.io/scontrino-pubblico/">Apri lo Scontrino pubblico →</a>
+    </div>
+
 
   </section>
 </div>
 
+<div class="gl" id="gl" hidden role="dialog" aria-live="polite" aria-labelledby="gl-t"><b id="gl-t"></b><p id="gl-p"></p><button type="button" id="gl-x">Ho capito</button></div>
+
 <script>
 const AZ_RATE = 0.30, INPS_RATE = 0.0919, INPS_FASCIA = 56224;
-// Spesa pubblica italiana 2024, Eurostat COFOG, in punti di PIL (totale 50,4)
-const PIL_TOT = 50.4;
-const COFOG = [
-  {k:"Pensioni", d:"di vecchiaia e ai superstiti: circa tre quarti della protezione sociale", g:15.975},
-  {k:"Sanità", d:"ospedali, medici di base, farmaci, prevenzione", g:6.6},
-  {k:"Altra protezione sociale", d:"invalidità, aiuti alle famiglie e ai figli, disoccupazione, contrasto alla povertà", g:5.325},
-  {k:"Interessi sul debito", d:"quello che lo Stato paga ogni anno a chi gli ha prestato soldi (titoli di Stato)", g:4.0},
-  {k:"Istruzione", d:"scuole dall'infanzia alle superiori, università, borse di studio", g:4.0},
-  {k:"Funzionamento dello Stato", d:"Parlamento, governo, ministeri, riscossione delle tasse, rapporti con l'estero, aiuti ad altri Paesi", g:3.7},
-  {k:"Aiuti all'economia", d:"incentivi alle imprese, agricoltura, energia, politiche del lavoro", g:2.7},
-  {k:"Trasporti", d:"strade, ferrovie, trasporto pubblico locale, porti e aeroporti", g:2.4},
-  {k:"Sicurezza, ambiente, casa e cultura", d:"polizia, vigili del fuoco, tribunali e carceri; rifiuti e depurazione delle acque; edilizia pubblica e illuminazione; musei, sport, biblioteche", g:4.4},
-  {k:"Difesa", d:"forze armate e missioni militari", g:1.3}
-].map(x=>({...x, p: x.g/PIL_TOT*100})).sort((a,b)=>b.p-a.p);
 const $ = id => document.getElementById(id);
-const fmt = n => Math.round(n).toLocaleString("it-IT") + " €";
+const fmt = n => Math.round(n).toLocaleString("it-IT",{useGrouping:"always"}) + " €";
+
+/* Parole spiegate. Chiave → [titolo, spiegazione in una o due frasi, senza altre parole difficili].
+   Le voci in comune sono identiche a quelle dello Scontrino pubblico: se cambi una spiegazione, cambiala in tutti e due. */
+const GLOSS = {
+  inps:["INPS","L'ente pubblico che incassa i contributi di chi lavora e paga pensioni, malattia, maternità e gli aiuti a chi perde il lavoro."],
+  contributi:["Contributi","Soldi versati all'INPS per ogni persona che lavora: una parte la paga l'azienda, una parte viene tolta dallo stipendio. Pagano le pensioni di oggi."],
+  irpef:["IRPEF","Imposta sul reddito delle persone: la tassa su quello che guadagni lavorando o con la pensione. A un dipendente viene tolta ogni mese dalla busta paga."],
+  iva:["IVA","Imposta sul valore aggiunto: una tassa già compresa nel prezzo di quasi tutto quello che compri. In una felpa da 30 € con IVA al 22%, 5,41 € vanno allo Stato."],
+  accise:["Accise","Una tassa fissa su ogni litro o chilo di certi prodotti: benzina, gasolio, luce, gas, sigarette, alcolici. Non è una percentuale: resta uguale anche se il prezzo cambia."],
+  imu:["IMU","Imposta su case, negozi e terreni, che va al Comune. Non si paga sulla casa dove si abita, tranne le case di lusso."],
+  tari:["TARI","La tassa sui rifiuti. La paga chi abita o lavora in un edificio, e serve a pagare raccolta e smaltimento."],
+  addizionale:["Addizionale IRPEF","Un piccolo pezzo di IRPEF in più che va alla Regione e al Comune dove vivi. La percentuale la decidono loro, entro i limiti della legge."],
+  lordo:["Lordo","Lo stipendio prima delle trattenute. È la cifra del contratto, ma non è quella che arriva sul conto."],
+  netto:["Netto","Quello che arriva davvero sul conto, dopo aver tolto contributi e tasse."],
+  deficit:["Deficit","Quando in un anno si spende più di quanto entra. La differenza si copre con nuovi prestiti, che fanno crescere il debito."],
+  debito:["Debito pubblico","Tutti i soldi che lo Stato ha preso in prestito negli anni e non ha ancora restituito. Ogni anno ci si pagano sopra gli interessi."],
+  btp:["BTP e BOT","Titoli di Stato: dei «pagherò» che lo Stato vende per farsi prestare soldi. Chi li compra presta soldi allo Stato e li riavrà indietro con gli interessi."],
+  interessi:["Interessi","Il prezzo di un prestito. Chi riceve soldi in prestito restituisce più di quanto ha avuto: la differenza sono gli interessi."],
+  naspi:["NASpI","L'assegno mensile che l'INPS paga per un periodo a chi perde il lavoro senza averlo scelto."],
+  cassaint:["Cassa integrazione","Quando un'azienda è in crisi e riduce il lavoro, l'INPS paga ai dipendenti una parte dello stipendio."],
+  residenti:["Residenti","Le persone iscritte all'anagrafe di un Comune, cioè che ci vivono ufficialmente. Contano anche bambini e anziani."],
+  eurostat:["Eurostat","L'ufficio statistico dell'Unione europea. Raccoglie i conti pubblici di tutti i Paesi UE con le stesse regole, così si possono confrontare."],
+  inail:["INAIL","L'assicurazione pubblica contro gli infortuni sul lavoro e le malattie causate dal lavoro."],
+  tfr:["TFR","Trattamento di fine rapporto: circa uno stipendio all'anno che l'azienda mette da parte e ti dà quando lasci quel lavoro."],
+  imponibile:["Imponibile","La parte di reddito su cui si calcola una tassa. Per l'IRPEF di un dipendente è il lordo meno i contributi."],
+  scaglioni:["Scaglioni","Gradini di reddito, ognuno con la sua percentuale di tassa. Ogni percentuale vale solo per la parte di reddito dentro quel gradino, non per tutto."],
+  detrazioni:["Detrazioni","Uno sconto sulla tassa già calcolata. Per chi lavora come dipendente è più alto se guadagna poco."],
+  cuneo:["Cuneo fiscale","La distanza tra quanto costa un lavoratore all'azienda e quanto lui riceve netto. Il «taglio del cuneo» è uno sconto dello Stato che riduce questa distanza."],
+  integrativo:["Trattamento integrativo","Un bonus fino a 1.200 € l'anno in busta paga per chi guadagna meno di 15.000 €."]
+};
+const W = (k, t) => `<u data-w="${k}">${t || GLOSS[k][0]}</u>`;
+function openGloss(u){
+  const g = GLOSS[u.dataset.w]; if (!g) return;
+  $("gl-t").textContent = g[0]; $("gl-p").textContent = g[1]; $("gl").hidden = false;
+}
+const closeGloss = () => { $("gl").hidden = true; };
+$("gl-x").addEventListener("click", closeGloss);
+// In fase di cattura: la parola dentro un elenco a fisarmonica non deve aprirlo o chiuderlo
+document.addEventListener("click", e=>{
+  const u = e.target.closest("u[data-w]");
+  if (u){ e.preventDefault(); e.stopPropagation(); openGloss(u); }
+  else if (!e.target.closest("#gl")) closeGloss();
+}, true);
+document.addEventListener("keydown", e=>{
+  const u = e.target.closest && e.target.closest("u[data-w]");
+  if (u && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); openGloss(u); }
+  if (e.key==="Escape") closeGloss();
+});
+// Ogni parola spiegata, anche quelle create dopo, si raggiunge con il tasto Tab
+const prepW = () => document.querySelectorAll("u[data-w]:not([tabindex])").forEach(u=>{ u.tabIndex = 0; u.setAttribute("role","button"); });
+prepW();
+new MutationObserver(prepW).observe(document.body, {childList:true, subtree:true});
+
+/* Spesa pubblica italiana 2024 per funzione (Eurostat COFOG) ed entrate 2024 (Eurostat), in milioni di euro.
+   Stessi numeri e stessi nomi dello Scontrino pubblico (oggetto ITALIA): se cambiano lì, vanno cambiati anche qui. */
+const SPESA = [
+  {k:"Pensioni", d:"Pensioni di vecchiaia e ai superstiti, cioè a vedove, vedovi e orfani di un pensionato.", t:359572},
+  {k:"Sanità", d:"Ospedali, medici di base, visite specialistiche, farmaci e prevenzione.", t:146075},
+  {k:"Altra protezione sociale", d:"Aiuti a chi è malato o invalido, alle famiglie con figli, a chi perde il lavoro e a chi è in povertà.", t:108563},
+  {k:"Istruzione", d:"Scuole dall'infanzia alle superiori, università e servizi come mense e trasporti scolastici.", t:89180},
+  {k:"Interessi sul debito", d:`Quello che si paga ogni anno a chi ha prestato soldi allo Stato comprando ${W("btp","titoli come BTP e BOT")}. È il prezzo del ${W("debito","debito")} accumulato negli anni.`, t:87789},
+  {k:"Funzionamento dello Stato", d:"Parlamento, governo, ministeri, riscossione delle tasse, rapporti con l'estero e ricerca di base.", t:82625},
+  {k:"Aiuti all'economia", d:"Incentivi alle imprese, politiche del lavoro, energia, industria e agricoltura.", t:60557},
+  {k:"Trasporti", d:"Strade, autostrade, ferrovie, trasporto pubblico locale, porti e aeroporti.", t:51824},
+  {k:"Sicurezza e giustizia", d:"Polizia, vigili del fuoco, tribunali e carceri.", t:39094},
+  {k:"Difesa", d:"Forze armate e missioni militari.", t:28301},
+  {k:"Ambiente", d:"Rifiuti, depurazione delle acque, inquinamento e tutela del paesaggio.", t:19828},
+  {k:"Cultura e sport", d:"Musei, biblioteche, impianti sportivi, televisione pubblica ed editoria.", t:18774},
+  {k:"Casa e territorio", d:"Case popolari, sviluppo urbano, illuminazione delle strade e acquedotti.", t:16973}
+];
+const SPESA_TOT = SPESA.reduce((a,x)=>a+x.t,0);   // 1.109.155 milioni
+const COFOG = SPESA.map(x=>({...x, p: x.t/SPESA_TOT*100})).sort((a,b)=>b.p-a.p);
+const ENTRATE_TOT = 1036025, CONTRIBUTI_TOT = 278140, PENSIONI_TOT = 359572, IVA_TOT = 145187, ACCISE_TOT = 99042;
+const RESIDENTI = 58934177;   // ISTAT, 1° gennaio 2025
+const PUBBLICO = "https://marvinbonazzo.github.io/scontrino-pubblico/";
+const mld = m => Math.round(m/1000).toLocaleString("it-IT",{useGrouping:"always"}) + " mld";
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function detrazioneLavoro(r){
@@ -399,7 +497,7 @@ const STEPS = [
   "Tolgo i tuoi contributi INPS",
   "Applico gli scaglioni IRPEF 2026",
   "Sottraggo detrazioni e taglio del cuneo",
-  "Divido le imposte tra le voci di spesa pubblica"
+  "Divido contributi e imposte tra le voci di spesa pubblica"
 ];
 let timer = null;
 function start(){
@@ -448,7 +546,7 @@ function renderResult(){
 
   $("r-lordo").textContent = fmt(lordo);
   $("r-costo").textContent = fmt(d.costo);
-  $("r-explain").innerHTML = `In busta paga vedi <b>${fmt(lordo)}</b> lordi, ma l'azienda ne spende <b>${fmt(d.costo)}</b>.`;
+  $("r-explain").innerHTML = `In busta paga vedi <b>${fmt(lordo)}</b> ${W("lordo","lordi")}, ma l'azienda ne spende <b>${fmt(d.costo)}</b>.`;
 
   // Barra: ogni euro del costo del lavoro
   const extraBonus = Math.max(0, d.bonus - d.irpef);
@@ -511,12 +609,12 @@ function renderResult(){
   h += S("Costo totale per l'azienda", d.costo);
   h += V("A", "Contributi INPS dell'azienda", d.inpsAz, "− ",
     `<b>${n2(lordo)} €</b> lordo × <b>30%</b> = <b class="res">${n2(d.inpsAz)} €</b><small>L'azienda prende il tuo lordo e ne calcola il 30%. Questa cifra la paga lei, <b>in aggiunta</b> al tuo stipendio: a te non viene tolto niente, il tuo lordo resta uguale. Il 30% è un valore medio: cambia un po' in base al settore e a quanti dipendenti ha l'azienda.</small>`,
-    `Una somma che l'azienda paga sopra il tuo stipendio e manda direttamente all'INPS. In busta paga non la vedi.`,
-    `All'INPS, l'ente pubblico della previdenza. Con questi soldi paga <b>oggi</b>: le pensioni di chi ha già smesso di lavorare, la malattia e la maternità di chi è a casa, la disoccupazione (NASpI) di chi ha perso il lavoro, la cassa integrazione. Una piccola parte va all'INAIL, l'assicurazione per gli infortuni sul lavoro.`,
+    `Una somma che l'azienda paga sopra il tuo stipendio e manda direttamente all'${W("inps","INPS")}. In busta paga non la vedi.`,
+    `All'INPS, l'ente pubblico della previdenza. Con questi soldi paga <b>oggi</b>: le pensioni di chi ha già smesso di lavorare, la malattia e la maternità di chi è a casa, la disoccupazione (${W("naspi","NASpI")}) di chi ha perso il lavoro, la ${W("cassaint","cassa integrazione")}. Una piccola parte va all'${W("inail","INAIL")}, l'assicurazione per gli infortuni sul lavoro.`,
     `Sì, ma non come un salvadanaio. I soldi non restano fermi a tuo nome: escono subito per pagare le pensioni di oggi. Quello che resta a te è un <b>conteggio</b>: l'INPS segna quanto hai versato, e su quel totale calcolerà la tua pensione. Quando sarà il momento, a pagarla saranno i contributi di chi lavorerà allora. In più, se ti ammali, diventi genitore o perdi il lavoro, è questo sistema che ti paga.`);
-  h += V("T", "TFR (trattamento di fine rapporto)", d.tfr, "− ",
+  h += V("T", "TFR", d.tfr, "− ",
     `<b>${n2(c.ral)} €</b> lordo annuo ÷ <b>13,5</b> = <b>${n2(c.tfr)} €</b> l'anno, cioè <b class="res">${n2(d.tfr)} €</b> al mese<small>La legge dice di dividere la retribuzione annua per 13,5: in pratica circa una mensilità all'anno. Anche questo si aggiunge sopra il lordo.</small>`,
-    `Una parte di stipendio che l'azienda mette da parte per te.`,
+    `Una parte di stipendio che l'azienda mette da parte per te: il ${W("tfr","trattamento di fine rapporto")}.`,
     `Resta in azienda e cresce un po' ogni anno, oppure va a un fondo pensione se l'hai scelto.`,
     `Sì, tutto. È uno stipendio rimandato: lo ricevi quando lasci quel lavoro (dimissioni, licenziamento, pensione). In alcuni casi puoi chiederne un anticipo, per esempio per comprare casa.`);
   h += S("= Stipendio lordo", d.ral);
@@ -527,35 +625,61 @@ function renderResult(){
     `Una parte del tuo stipendio che l'azienda trattiene dalla busta paga e versa all'INPS a tuo nome.`,
     `Stesso posto dei contributi dell'azienda: l'INPS, che li usa per pagare pensioni e indennità di oggi.`,
     `Sì, nello stesso modo: si somma al conteggio della tua pensione futura. Più anni lavori e più guadagni, più alta sarà. In più su questa parte non paghi IRPEF.`);
-  h += S("= Su questo si calcola l'IRPEF", d.imp);
+  h += S(`= Su questo si calcola l'IRPEF (${W("imponibile","imponibile")})`, d.imp);
   h += V("C", "IRPEF", d.irpef, "− ",
     `<b>${n2(lordo)} €</b> − <b>${n2(d.inpsTu)} €</b> contributi = <b>${n2(d.imp)} €</b> imponibile<br>
      Su un anno: ${n2(c.imp)} € tassati a scaglioni = <b>${n2(c.lorda)} €</b> − detrazioni <b>${n2(c.detr)} €</b> = <b>${n2(irpefA)} €</b><br>
      ${n2(irpefA)} € ÷ ${mens} mensilità = <b class="res">${n2(d.irpef)} €</b> al mese
-     <small>Scaglioni: 23% fino a 28.000 € l'anno, 33% da 28.000 a 50.000 €, 43% oltre. Ogni aliquota vale solo per la parte di reddito dentro quel gradino. Le detrazioni sono uno sconto per chi lavora come dipendente, più alto per i redditi bassi.</small>`,
-    `L'imposta sul reddito. Si paga sul lordo meno i tuoi contributi.`,
-    `Allo Stato. Non ha un uso preciso: entra nella cassa comune e paga di tutto, dalla sanità alla scuola, dalle pensioni agli interessi sul debito. Il dettaglio è nella sezione qui sotto.`,
+     <small>${W("scaglioni","Scaglioni")}: 23% fino a 28.000 € l'anno, 33% da 28.000 a 50.000 €, 43% oltre. Ogni percentuale vale solo per la parte di reddito dentro quel gradino. Le ${W("detrazioni","detrazioni")} sono uno sconto per chi lavora come dipendente, più alto per i redditi bassi.</small>`,
+    `L'${W("irpef","imposta sul reddito")}. Si paga sul lordo meno i tuoi contributi.`,
+    `Allo Stato. Non ha un uso preciso: entra nella cassa comune insieme ai contributi, all'${W("iva","IVA")} e a tutte le altre entrate, e paga di tutto, dalla sanità alla scuola, dalle pensioni agli interessi sul debito. Come viene spesa lo vedi nella sezione «Dove vanno» qui sopra.`,
     `Non in soldi, ma in servizi: l'ospedale, la scuola, le strade, la polizia. Li usi anche se non ci pensi.`);
   if (d.bonus > 0) h += V("E", "Bonus dallo Stato", d.bonus, "+ ",
-    `Trattamento integrativo (fino a 1.200 € l'anno sotto i 15.000 € di reddito) e somma esente del cuneo fiscale (dal 4,8% al 7,1% del reddito sotto i 20.000 €): <b class="res">${n2(d.bonus)} €</b> al mese`,
+    `${W("integrativo","Trattamento integrativo")} (fino a 1.200 € l'anno sotto i 15.000 € di reddito) e somma esente del ${W("cuneo","cuneo fiscale")} (dal 4,8% al 7,1% del reddito sotto i 20.000 €): <b class="res">${n2(d.bonus)} €</b> al mese`,
     `Soldi in più previsti per chi guadagna poco.`,
     `Direttamente in busta paga.`,
     `Sono già tuoi: alzano il netto senza toccare i contributi, quindi senza ridurre la pensione futura.`);
   h += S("= Netto del mese", d.netto).replace('<span>${','<span>${').replace('class="subtotal"','class="subtotal net"');
   $("voci").innerHTML = h;
 
-  $("taxTot").textContent = fmt(taxesM) + " al mese";
+  // Tutto quello che dal tuo lavoro va al settore pubblico: contributi (azienda e tuoi) e IRPEF al netto dei bonus
+  const pub = d.inpsAz + d.inpsTu + taxesM;
+  $("taxTot").textContent = fmt(pub) + " al mese";
+  $("split-hint").innerHTML = `Contributi dell'azienda <b class="mono">${fmt(d.inpsAz)}</b> + contributi tuoi <b class="mono">${fmt(d.inpsTu)}</b> + IRPEF <b class="mono">${fmt(taxesM)}</b>. Entrano nei conti pubblici insieme ai soldi di tutti e non hanno un'etichetta: qui li dividiamo come il settore pubblico ha speso nel 2024. È l'ultimo anno con la spesa divisa per voce: ${W("eurostat","Eurostat")} pubblica il 2025 a inizio 2027.`;
+  const extra = pub * (SPESA_TOT/ENTRATE_TOT - 1);
+  $("split-facts").innerHTML = [
+    ["1","Perché contiamo anche i contributi?",
+      `I ${W("contributi","contributi")} vanno all'INPS, per le pensioni e gli aiuti a chi non può lavorare. Ma in tutta Italia nel 2024 i contributi sono stati <b>${mld(CONTRIBUTI_TOT)}</b> e le sole pensioni sono costate <b>${mld(PENSIONI_TOT)}</b>: il resto lo mette lo Stato con le altre tasse. Alla fine è una cassa sola, per questo li contiamo insieme.`],
+    ["2","Lo Stato spende più di quanto incassa",
+      `Nel 2024, per ogni 100 € entrati, il settore pubblico ne ha spesi ${Math.round(SPESA_TOT/ENTRATE_TOT*100)}. In proporzione ai tuoi ${fmt(pub)}, sono altri <b>${fmt(extra)}</b> al mese spesi in più e presi in prestito: è il ${W("deficit","deficit")}. Si aggiunge al ${W("debito","debito")}, che si ripaga negli anni con gli ${W("interessi","interessi")}, anche con le tasse future.`],
+    ["3","Non è un conto a tuo nome",
+      `Lo Stato non segna dove va la tua IRPEF. Questa divisione mostra come sarebbero ripartiti i tuoi soldi se seguissero la spesa pubblica totale. Il dettaglio di ogni voce, e da dove arrivano tutti gli altri soldi, è sullo <a href="${PUBBLICO}">Scontrino pubblico</a>.`]
+  ].map(([n,h,p])=>`<div class="fact"><span class="n">${n}</span><div><h3>${h}</h3><p>${p}</p></div></div>`).join("");
+
+  // Tasse che non passano dalla busta paga: solo regole e medie ufficiali, nessuna stima personale
+  const perRes = m => fmt(m*1e6/RESIDENTI);
+  $("hidden-tax").innerHTML = [
+    ["€",`${W("iva","IVA")} su quello che compri`,
+      `È già nel prezzo di quasi tutto. In una felpa da 30 € con IVA al 22% ci sono 5,41 € di IVA. In Italia l'IVA vale in media <b>${perRes(IVA_TOT)}</b> l'anno per ${W("residenti","residente")}, bambini compresi.`],
+    ["€",`${W("accise","Accise")}`,
+      `Nel pieno di benzina, nelle bollette di luce e gas, nelle sigarette. Con le altre imposte sui consumi valgono in media <b>${perRes(ACCISE_TOT)}</b> l'anno per residente.`],
+    ["€",`${W("addizionale","Addizionali IRPEF")} di Regione e Comune`,
+      `Sono in busta paga, ma questo scontrino non le conta perché cambiano da posto a posto. Quanto incassa il tuo Comune lo vedi sullo <a href="${PUBBLICO}">Scontrino pubblico</a>, scegliendo il Comune.`],
+    ["€","Casa e auto",
+      `L'${W("imu","IMU")} se hai una seconda casa, la ${W("tari","TARI")} per i rifiuti, il bollo se hai un'auto o una moto.`]
+  ].map(([n,h,p])=>`<div class="fact"><span class="n">${n}</span><div><h3>${h}</h3><p>${p}</p></div></div>`).join("");
+
   const max = Math.max(...COFOG.map(x=>x.p));
-  const raw = COFOG.map(x=>taxesM*x.p/100), flo = raw.map(Math.floor);
-  let left = taxesM - flo.reduce((a,b)=>a+b,0);
+  const raw = COFOG.map(x=>pub*x.p/100), flo = raw.map(Math.floor);
+  let left = pub - flo.reduce((a,b)=>a+b,0);
   raw.map((v,i)=>[v-flo[i],i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if (left>0){ flo[i]++; left--; } });
   $("split").innerHTML = COFOG.map((x,i)=>{
       const v = flo[i];
       const pc = x.p.toLocaleString("it-IT",{minimumFractionDigits:1, maximumFractionDigits:1});
       return `<details class="voce srow2"><summary><span class="stripe" style="background:var(--c-irpef)"></span>
-        <span class="ttl"><span class="tname">${x.k}</span><span class="mbar"><span style="width:${x.p/max*100}%"></span></span></span><span class="pc">${pc}% di ${fmt(taxesM)}</span><span class="amt">${fmt(v)}</span><span class="chev" aria-hidden="true"></span></summary>
+        <span class="ttl"><span class="tname">${x.k}</span><span class="mbar"><span style="width:${x.p/max*100}%"></span></span></span><span class="pc">${pc}% di ${fmt(pub)}</span><span class="amt">${fmt(v)}</span><span class="chev" aria-hidden="true"></span></summary>
         <div class="body"><p class="sdesc">${x.d}</p></div></details>`;
-    }).join("") + `<div class="subtotal"><span>Totale imposte del mese</span><span>${fmt(taxesM)}</span></div>`;
+    }).join("") + `<div class="subtotal"><span>Totale del mese</span><span>${fmt(pub)}</span></div>`;
 }
 </script>
 

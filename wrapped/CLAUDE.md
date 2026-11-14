@@ -27,7 +27,7 @@ Se cambiano le regole fiscali, aggiorna prima lo Scontrino delle tasse e poi ric
 | INPS | contributi azienda + tuoi; spiega che pagano le pensioni di oggi |
 | Scalini IRPEF | evidenzia lo scaglione del reddito imponibile |
 | IRPEF al mese | IRPEF meno taglio del cuneo |
-| Dove va l'IRPEF | IRPEF divisa secondo la spesa pubblica 2024 (Eurostat COFOG, punti di PIL, array `COFOG`) |
+| Dove va l'IRPEF | IRPEF divisa secondo la spesa pubblica 2024 (Eurostat COFOG, milioni di euro, array `COFOG`, stessi numeri di `SPESA` in `../index.html`) |
 | Giorno di "liberazione" | (contributi azienda + tuoi + IRPEF) ÷ costo × 365, contato dal 1° gennaio |
 | Scontrino finale | busta paga riga per riga + dove finisce l'IRPEF |
 

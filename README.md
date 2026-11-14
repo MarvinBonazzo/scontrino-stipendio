@@ -6,7 +6,7 @@ Scrivi il tuo stipendio lordo e scopri quanto costa davvero il tuo lavoro, quant
 
 Per ragazzi: **[Il Wrapped del tuo stipendio](https://marvinbonazzo.github.io/scontrino-stipendio/wrapped/)**, lo stesso conto raccontato a storie, una schermata alla volta.
 
-Progetto gemello: **[Scontrino pubblico](https://marvinbonazzo.github.io/scontrino-pubblico/)**, che mostra quanto spende il settore pubblico per ogni residente, in Italia e in ognuno dei circa 7.900 Comuni ([codice](https://github.com/MarvinBonazzo/scontrino-pubblico)).
+Progetto gemello: **[Scontrino pubblico](https://marvinbonazzo.github.io/scontrino-pubblico/)**. Questo scontrino mostra cosa paghi tu con il tuo stipendio; quello mostra quanti soldi arrivano in tutto allo Stato, da dove, e come vengono spesi per ogni residente, in Italia e in ognuno dei circa 7.900 Comuni ([codice](https://github.com/MarvinBonazzo/scontrino-pubblico)).
 
 ---
 
@@ -17,7 +17,8 @@ Progetto gemello: **[Scontrino pubblico](https://marvinbonazzo.github.io/scontri
 3. **Vedi il risultato:**
    - quanto spende l'azienda per te ogni mese, che è più del tuo lordo;
    - una barra "Ogni euro" che divide quel costo tra contributi dell'azienda, TFR, contributi tuoi, IRPEF e netto;
-   - **Dove vanno le tue imposte**: la tua IRPEF divisa tra pensioni, sanità, scuola, interessi sul debito e le altre voci, nella stessa proporzione in cui lo Stato ha speso nel 2024;
+   - **Dove vanno i tuoi soldi pubblici**: contributi (dell'azienda e tuoi) più IRPEF, divisi tra pensioni, sanità, scuola, interessi sul debito e le altre voci, nella stessa proporzione in cui il settore pubblico ha speso nel 2024. Sotto, tre spiegazioni: perché si contano anche i contributi, quanto lo Stato spende in più di quanto incassa (deficit), e perché non è un conto a tuo nome;
+   - **Le tasse che questo scontrino non conta**: IVA, accise, addizionali, IMU, TARI e bollo, con le medie ufficiali per residente;
    - **Voce per voce**: ogni riga si apre e mostra il conto fatto, con i numeri veri.
 
 Un esempio: con 2.000 € lordi al mese, lo scontrino ti mostra quanto in più paga l'azienda sopra quei 2.000 €, quanto ti tolgono INPS e IRPEF, e quanti euro della tua IRPEF vanno alle pensioni o alla sanità.
@@ -35,7 +36,8 @@ Il calcolo segue le regole di legge per un lavoratore dipendente nel 2026. Ogni 
 | Detrazioni | detrazione per lavoro dipendente e ulteriore detrazione fino a 1.000 € (tra 20.000 e 40.000 € di reddito) |
 | Taglio del cuneo | somma esente da tasse fino a 20.000 € di reddito (7,1%, 5,3% o 4,8% secondo la fascia) |
 | Trattamento integrativo | 1.200 € l'anno per i redditi fino a 15.000 €, quando spetta |
-| Dove vanno le imposte | IRPEF divisa secondo la spesa pubblica italiana 2024 per funzione (Eurostat, classificazione COFOG) |
+| Dove vanno i soldi | contributi azienda + contributi tuoi + IRPEF, divisi secondo la spesa pubblica italiana 2024 per funzione (Eurostat, classificazione COFOG, in milioni di euro: gli stessi numeri dello Scontrino pubblico) |
+| Deficit | i tuoi soldi pubblici × (spesa 2024 ÷ entrate 2024 − 1), cioè circa 7 € in più ogni 100 € |
 
 Tutto il calcolo avviene nel tuo browser. Lo stipendio che scrivi non viene salvato né mandato a nessuno: la pagina non ha account e non ha statistiche o tracciamento. L'unica cosa che scarica da fuori sono i caratteri, da Google Fonts.
 
@@ -54,9 +56,14 @@ Tutto il calcolo avviene nel tuo browser. Lo stipendio che scrivi non viene salv
 Per restare chiaro, lo scontrino fa alcune scelte. Le dice apertamente:
 
 - **I contributi dell'azienda sono un valore medio (30%).** Il valore esatto cambia un po' in base al settore e a quanti dipendenti ha l'azienda.
-- **Non conta le addizionali regionali e comunali all'IRPEF**, che cambiano da Comune a Comune.
+- **Non conta le addizionali regionali e comunali all'IRPEF**, che cambiano da Comune a Comune. Quanto incassa ogni Comune si vede sullo Scontrino pubblico.
+- **Non calcola IVA e accise** che paghi quando spendi il netto: dipendono da cosa compri. La pagina mostra solo la media ufficiale per residente.
 - **Considera un dipendente senza familiari a carico** e senza altri redditi o detrazioni personali (spese mediche, mutuo…).
-- **Le tue tasse non hanno un'etichetta.** Lo Stato non usa la tua IRPEF per una spesa precisa: la divisione mostra come sarebbe ripartita se seguisse la spesa pubblica totale.
+- **I tuoi soldi non hanno un'etichetta.** Lo Stato non usa la tua IRPEF né i tuoi contributi per una spesa precisa: la divisione mostra come sarebbero ripartiti se seguissero la spesa pubblica totale.
+
+## Parole spiegate
+
+Ogni parola tecnica (INPS, IRPEF, TFR, imponibile, detrazioni, deficit…) è sottolineata a puntini: toccandola si apre una spiegazione di una o due frasi. Le spiegazioni sono nell'oggetto `GLOSS` di `index.html`, identiche a quelle dello Scontrino pubblico.
 
 Per sapere il tuo netto esatto fa fede la busta paga.
 
